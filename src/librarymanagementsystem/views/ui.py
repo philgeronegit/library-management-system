@@ -92,6 +92,12 @@ class LibraryView(QMainWindow):
         auteurs_tab.setLayout(self.auteurs_tab_layout)
         self.tab.addTab(auteurs_tab, "Auteurs")
 
+        genres_tab = QWidget()
+        self.genres_tab_layout = QVBoxLayout()
+        self.genres_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        genres_tab.setLayout(self.genres_tab_layout)
+        self.tab.addTab(genres_tab, "Genres")
+
         regles_prets_tab = QWidget()
         self.regles_prets_tab_layout = QVBoxLayout()
         self.regles_prets_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -155,6 +161,9 @@ class LibraryView(QMainWindow):
 
         self.authors_table = CustomTableView("authors", self.controller)
         self.auteurs_tab_layout.addWidget(self.authors_table)
+
+        self.genres_table = CustomTableView("genres", self.controller)
+        self.genres_tab_layout.addWidget(self.genres_table)
 
         self.setCentralWidget(self.centralWidget)
 

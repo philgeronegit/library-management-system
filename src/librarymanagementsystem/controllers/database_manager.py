@@ -129,6 +129,10 @@ class DatabaseManager:
         query = "SELECT * FROM auteurs;"
         return self.database.exec_query(query)
 
+    def read_genres(self):
+        query = "SELECT * FROM genres;"
+        return self.database.exec_query(query)
+
     def read_borrow_rules(self):
         query = "SELECT * FROM regles_prets;"
         return self.database.exec_query(query)

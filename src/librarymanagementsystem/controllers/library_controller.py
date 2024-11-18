@@ -21,6 +21,7 @@ class LibraryController:
         self.books_model = None
         self.users_model = None
         self.authors_model = None
+        self.genres_model = None
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
@@ -42,6 +43,10 @@ class LibraryController:
         df = self.database_manager.read_authors()
         self.authors_model = TableModel(df)
 
+    def read_genres(self):
+        df = self.database_manager.read_genres()
+        self.genres_model = TableModel(df)
+
     def read_borrow_rules(self):
         df = self.database_manager.read_borrow_rules()
         self.duree_maximale_emprunt = df.loc[0, "duree_maximale_emprunt"]
@@ -53,6 +58,7 @@ class LibraryController:
             self.read_books()
             self.read_users()
             self.read_authors()
+            self.read_genres()
         except Exception as e:
             print("Impossible de lire les tables {}".format(e))
         self.setup_ui()
@@ -82,6 +88,9 @@ class LibraryController:
 
         if self.authors_model is not None:
             self.ui_manager.setup_authors_table(self.authors_model)
+
+        if self.genres_model is not None:
+            self.ui_manager.setup_genres_table(self.genres_model)
 
         if self.books_model is not None:
             self.ui_manager.setup_books_table(self.books_model)

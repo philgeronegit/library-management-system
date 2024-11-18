@@ -28,6 +28,17 @@ class UIManager:
             QAbstractItemView.SelectionBehavior.SelectRows
         )
 
+    def setup_genres_table(self, genres_model):
+        self.view.genres_table.setModel(genres_model)
+        self.view.genres_table.resizeColumnsToContents()
+        self.view.genres_table.setSortingEnabled(True)
+        self.view.genres_table.sortByColumn(1, Qt.SortOrder.AscendingOrder)
+        self.view.genres_table.setColumnHidden(0, True)
+        self.view.genres_table.verticalHeader().setVisible(False)
+        self.view.genres_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+
     def setup_books_table(self, books_model):
         self.view.books_table.setModel(books_model)
         self.view.books_table.resizeColumnsToContents()
