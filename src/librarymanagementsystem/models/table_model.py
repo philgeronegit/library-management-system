@@ -19,10 +19,6 @@ class TableModel(QtCore.QAbstractTableModel):
 
         value = self.__filtered_data.iloc[index.row(), index.column()]
         if role == Qt.ItemDataRole.DisplayRole:
-            # For column 5, return None to show only the checkbox
-            if index.column() == 5:
-                return None
-
             # check if null
             if pd.isnull(value):
                 return None
@@ -42,13 +38,6 @@ class TableModel(QtCore.QAbstractTableModel):
             # Default (anything not captured above: e.g. int)
             return str(value)
 
-        if role == Qt.ItemDataRole.CheckStateRole and index.column() == 5:
-            return Qt.Checked if value == 1 else Qt.Unchecked
-
-        # Custom role to retrieve the actual value of column 5
-        if role == Qt.UserRole and index.column() == 5:
-            return value
-
         return None
 
     def rowCount(self, index):
@@ -66,21 +55,9 @@ class TableModel(QtCore.QAbstractTableModel):
             if orientation == Qt.Orientation.Vertical:
                 return str(self.__filtered_data.index[section])
 
-    def setData(self, index, value, role):
-        if role == Qt.ItemDataRole.CheckStateRole and index.column() == 5:
-            self.__filtered_data.iloc[index.row(), index.column()] = (
-                1 if value == Qt.Checked else 0
-            )
-            self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
-            return True
-        return False
-
     def flags(self, index):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
-
-        if index.column() == 5:
-            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
         return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 

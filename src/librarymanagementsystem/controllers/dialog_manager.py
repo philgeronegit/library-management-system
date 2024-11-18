@@ -30,11 +30,7 @@ class DialogManager:
         if response == QDialog.Accepted:
             data = dialog.get_data()
             new_book = Book(
-                data["titre"],
-                data["auteur"],
-                data["genre"],
-                data["date_publication"],
-                data["disponibilite"],
+                data["titre"], data["auteur"], data["genre"], data["date_publication"]
             )
             self.database_manager.insert_book(new_book)
 
@@ -62,7 +58,6 @@ class DialogManager:
                 data["auteur"],
                 data["genre"],
                 data["date_publication"],
-                data["disponibilite"],
                 book.id,
             )
             self.database_manager.modify_book(existing_book)

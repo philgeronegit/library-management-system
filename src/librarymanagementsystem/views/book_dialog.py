@@ -1,14 +1,6 @@
 import qtawesome as qta
 from dateutil.parser import parse
-from PyQt6.QtWidgets import (
-    QCheckBox,
-    QDialog,
-    QFormLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-)
+from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
 from librarymanagementsystem.models.book import Book
 from librarymanagementsystem.views.utils import input_factory
@@ -38,10 +30,6 @@ class BookDialog(QDialog):
         label, self.date_publication_input = input_factory("Date publication :")
         self.form_layout.addRow(label, self.date_publication_input)
 
-        disponibility_label = QLabel("Disponibilité :")
-        self.disponibility_checkbox = QCheckBox("Disponible")
-        self.form_layout.addRow(disponibility_label, self.disponibility_checkbox)
-
         self.button_layout = QHBoxLayout()
         self.cancel_button = QPushButton("Annuler")
         self.cancel_button.clicked.connect(self.reject)
@@ -63,7 +51,6 @@ class BookDialog(QDialog):
             "auteur": self.auteur_input.text().strip(),
             "genre": self.genre_input.text().strip(),
             "date_publication": self.date_publication_input.text().strip(),
-            "disponibilite": self.disponibility_checkbox.isChecked(),
         }
 
     def is_valid_date(self, date_string: str) -> bool:
@@ -93,7 +80,6 @@ class BookDialog(QDialog):
         self.auteur_input.setText(book.auteur)
         self.genre_input.setText(book.genre)
         self.date_publication_input.setText(book.date_publication)
-        self.disponibility_checkbox.setChecked(book.disponibilite)
         self.validate_inputs()
         self.setWindowTitle("Modifier livre")
         self.add_button.setText("Modifier")
