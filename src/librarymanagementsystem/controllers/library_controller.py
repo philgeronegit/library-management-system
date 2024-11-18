@@ -18,8 +18,9 @@ class LibraryController:
         self.view = LibraryView(self)
         self.filter_type = "all"
         self.filter_text = ""
-        self.users_model = None
         self.books_model = None
+        self.users_model = None
+        self.authors_model = None
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
@@ -28,25 +29,30 @@ class LibraryController:
         self.duree_maximale_emprunt = None
         self.penalite_retard = None
 
-    def readBooks(self):
+    def read_books(self):
         df = self.database_manager.read_books(filter_type=self.filter_type)
         self.books_model = TableModel(df)
         self.show_books_number()
 
-    def readUsers(self):
+    def read_users(self):
         df = self.database_manager.read_users()
         self.users_model = TableModel(df)
 
-    def readBorrowRules(self):
+    def read_authors(self):
+        df = self.database_manager.read_authors()
+        self.authors_model = TableModel(df)
+
+    def read_borrow_rules(self):
         df = self.database_manager.read_borrow_rules()
         self.duree_maximale_emprunt = df.loc[0, "duree_maximale_emprunt"]
         self.penalite_retard = df.loc[0, "penalite_retard"]
 
     def run(self):
         try:
-            self.readBorrowRules()
-            self.readBooks()
-            self.readUsers()
+            self.read_borrow_rules()
+            self.read_books()
+            self.read_users()
+            self.read_authors()
         except Exception as e:
             print("Impossible de lire les tables {}".format(e))
         self.setup_ui()
@@ -73,6 +79,9 @@ class LibraryController:
                 index = self.users_model.index(row, 1)
                 value = self.users_model.data(index, Qt.ItemDataRole.DisplayRole)
                 self.view.user_combo_box.addItem(value)
+
+        if self.authors_model is not None:
+            self.ui_manager.setup_authors_table(self.authors_model)
 
         if self.books_model is not None:
             self.ui_manager.setup_books_table(self.books_model)
@@ -137,7 +146,7 @@ class LibraryController:
     def filter_change(self, type: str):
         print(f"Filter change {type}")
         self.filter_type = type
-        self.readBooks()
+        self.read_books()
         self.update_viewport_books()
 
     def delete_selected_item(self, name: str, index: int):
@@ -162,7 +171,7 @@ class LibraryController:
             return
 
         self.dialog_manager.delete_book(book)
-        self.readBooks()
+        self.read_books()
         self.update_viewport_books()
 
     def login(self):
@@ -219,7 +228,7 @@ class LibraryController:
     def add_book(self):
         """Add a new book to the list"""
         self.dialog_manager.add_book()
-        self.readBooks()
+        self.read_books()
         self.update_viewport_books()
 
     def borrow_book(self):
@@ -296,7 +305,7 @@ class LibraryController:
             return
 
         self.dialog_manager.modify_book(book)
-        self.readBooks()
+        self.read_books()
         self.update_viewport_books()
 
     def restore_book(self, index: int):

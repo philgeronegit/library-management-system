@@ -17,6 +17,17 @@ class UIManager:
             QAbstractItemView.SelectionBehavior.SelectRows
         )
 
+    def setup_authors_table(self, authors_model):
+        self.view.authors_table.setModel(authors_model)
+        self.view.authors_table.resizeColumnsToContents()
+        self.view.authors_table.setSortingEnabled(True)
+        self.view.authors_table.sortByColumn(1, Qt.SortOrder.AscendingOrder)
+        self.view.authors_table.setColumnHidden(0, True)
+        self.view.authors_table.verticalHeader().setVisible(False)
+        self.view.authors_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+
     def setup_books_table(self, books_model):
         self.view.books_table.setModel(books_model)
         self.view.books_table.resizeColumnsToContents()

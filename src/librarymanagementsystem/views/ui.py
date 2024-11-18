@@ -86,6 +86,12 @@ class LibraryView(QMainWindow):
         utilisateurs_tab.setLayout(self.utilisateurs_tab_layout)
         self.tab.addTab(utilisateurs_tab, "Utilisateurs")
 
+        auteurs_tab = QWidget()
+        self.auteurs_tab_layout = QVBoxLayout()
+        self.auteurs_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        auteurs_tab.setLayout(self.auteurs_tab_layout)
+        self.tab.addTab(auteurs_tab, "Auteurs")
+
         regles_prets_tab = QWidget()
         self.regles_prets_tab_layout = QVBoxLayout()
         self.regles_prets_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -146,6 +152,9 @@ class LibraryView(QMainWindow):
 
         self.users_table = CustomTableView("users", self.controller)
         self.utilisateurs_tab_layout.addWidget(self.users_table)
+
+        self.authors_table = CustomTableView("authors", self.controller)
+        self.auteurs_tab_layout.addWidget(self.authors_table)
 
         self.setCentralWidget(self.centralWidget)
 

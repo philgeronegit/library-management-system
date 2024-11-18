@@ -8,8 +8,6 @@ class DatabaseManager:
         self.database = database
 
     def read_books(self, filter_type="all", filter_text=""):
-        print(f"Filter type {filter_type}")
-        print(f"Filter text {filter_text}")
         query = ""
         if filter_type == "all":
             query = """
@@ -121,11 +119,14 @@ class DatabaseManager:
                   Status = 'En retard';
             """
 
-        print(f"Query {query}")
         return self.database.exec_query(query)
 
     def read_users(self):
         query = "SELECT * FROM utilisateurs;"
+        return self.database.exec_query(query)
+
+    def read_authors(self):
+        query = "SELECT * FROM auteurs;"
         return self.database.exec_query(query)
 
     def read_borrow_rules(self):
