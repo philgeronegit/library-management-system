@@ -125,7 +125,7 @@ class LibraryView(QMainWindow):
         self.borrowed_books_radio.setProperty("type", "borrowed")
         self.borrowed_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.late_books_radio = QRadioButton("Retours en retard")
-        self.setProperty("type", "late")
+        self.late_books_radio.setProperty("type", "late")
         self.late_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.user_combo_box = QComboBox()
         self.user_combo_box.addItem("Tous")
@@ -248,5 +248,4 @@ class LibraryView(QMainWindow):
         """Perform a search when the timer times out"""
         search_text = self.search_input.text().strip()
         print(f"Searching for: {search_text}")
-        self.controller.perform_search(search_text)
         self.controller.perform_search(search_text)
