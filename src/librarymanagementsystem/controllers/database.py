@@ -5,8 +5,6 @@ import pandas as pd
 import sqlalchemy
 from dotenv import load_dotenv
 
-from librarymanagementsystem.models.book import Book
-
 load_dotenv()
 
 
@@ -32,7 +30,7 @@ class Database:
 
     def exec_query(self, query: str) -> pd.DataFrame:
         try:
-            engine = self.getEngine()  # self.getConnection()
+            engine = self.getEngine()
             with engine.connect() as conn:
                 result = conn.execute(sqlalchemy.text(query))
                 columns = result.keys()
@@ -40,10 +38,7 @@ class Database:
 
                 result_dataFrame = pd.DataFrame(data, columns=columns)
 
-                if result_dataFrame.empty:
-                    print("No data found.")
-                else:
-                    return result_dataFrame
+                return result_dataFrame
         except Exception as e:
             print("Failed to read table {}".format(e))
 

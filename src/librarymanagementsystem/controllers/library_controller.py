@@ -8,6 +8,7 @@ from librarymanagementsystem.controllers.ui_manager import UIManager
 from librarymanagementsystem.models.book import Book
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.models.user import User
+from librarymanagementsystem.views.components.custom_table_view import CustomTableView
 from librarymanagementsystem.views.ui import LibraryView
 from librarymanagementsystem.views.user_dialog import UserDialog
 
@@ -16,6 +17,7 @@ class LibraryController:
     def __init__(self):
         self.view = LibraryView(self)
         self.filter_type = "all"
+        self.filter_text = ""
         self.users_model = None
         self.books_model = None
         self.database = Database()
@@ -23,10 +25,13 @@ class LibraryController:
         self.dialog_manager = DialogManager(self.view, self.database_manager)
         self.ui_manager = UIManager(self.view)
         self.selected_user = None
+        self.duree_maximale_emprunt = None
+        self.penalite_retard = None
 
     def readBooks(self):
-        df = self.database_manager.read_books(self.filter_type)
+        df = self.database_manager.read_books(filter_type=self.filter_type)
         self.books_model = TableModel(df)
+        self.show_books_number()
 
     def readUsers(self):
         df = self.database_manager.read_users()
@@ -90,16 +95,22 @@ class LibraryController:
         self.view.statusBar().showMessage(f"Nombre de livres : {length}")
 
     def perform_search(self, search_text):
-        self.books_model.filterData(search_text)
-        self.show_books_number()
+        df = self.database_manager.read_books(
+            filter_type="search", filter_text=search_text
+        )
+        print(df)
+        if df.empty:
+            print("Pas de résultats")
+            return
 
-    def update_viewport(self):
+        self.books_model = TableModel(df)
+        self.update_viewport_books()
+
+    def update_viewport_books(self):
         # Get the current sort column and order
         sort_column = self.view.books_table.horizontalHeader().sortIndicatorSection()
         sort_order = self.view.books_table.horizontalHeader().sortIndicatorOrder()
 
-        # Read books and update the model
-        self.readBooks()
         self.view.books_table.setModel(self.books_model)
         self.view.books_table.resizeColumnsToContents()
         self.view.books_table.viewport().update()
@@ -109,11 +120,27 @@ class LibraryController:
 
         self.show_books_number()
 
-    def filter_change(self, type: str):
-        self.filter_type = type
-        self.update_viewport()
+    def update_viewport_users(self):
+        # Get the current sort column and order
+        sort_column = self.view.users_table.horizontalHeader().sortIndicatorSection()
+        sort_order = self.view.users_table.horizontalHeader().sortIndicatorOrder()
 
-    def delete_selected_item(self, name, index):
+        self.view.users_table.setModel(self.users_model)
+        self.view.users_table.resizeColumnsToContents()
+        self.view.users_table.viewport().update()
+
+        # Reapply the sort order
+        self.view.users_table.sortByColumn(sort_column, sort_order)
+
+        self.show_books_number()
+
+    def filter_change(self, type: str):
+        print(f"Filter change {type}")
+        self.filter_type = type
+        self.readBooks()
+        self.update_viewport_books()
+
+    def delete_selected_item(self, name: str, index: int):
         print(f"Supprimer {name} {index}")
         if name == "books":
             self.delete_book()
@@ -127,7 +154,6 @@ class LibraryController:
             return
 
         self.dialog_manager.delete_user(user)
-        self.update_viewport()
 
     def delete_book(self):
         """Delete a book from the list"""
@@ -136,7 +162,8 @@ class LibraryController:
             return
 
         self.dialog_manager.delete_book(book)
-        self.update_viewport()
+        self.readBooks()
+        self.update_viewport_books()
 
     def login(self):
         dialog = UserDialog()
@@ -188,12 +215,12 @@ class LibraryController:
     def add_user(self):
         """Add a new user to the list"""
         self.dialog_manager.add_user()
-        self.update_viewport()
 
     def add_book(self):
         """Add a new book to the list"""
         self.dialog_manager.add_book()
-        self.update_viewport()
+        self.readBooks()
+        self.update_viewport_books()
 
     def borrow_book(self):
         book = self.get_selected_book()
@@ -241,13 +268,13 @@ class LibraryController:
         if button == QMessageBox.StandardButton.Yes:
             print("Livre réservé")
 
-    def add_item(self, name):
+    def add_item(self, name: str):
         if name == "books":
             self.add_book()
         elif name == "users":
             self.add_user()
 
-    def modify_selected_item(self, name, index):
+    def modify_selected_item(self, name: str, index: int):
         print(f"Modifier {name} {index}")
         if name == "books":
             self.modify_book()
@@ -261,7 +288,6 @@ class LibraryController:
             return
 
         self.dialog_manager.modify_user(user)
-        self.update_viewport()
 
     def modify_book(self):
         """Modify a book from the list"""
@@ -270,25 +296,10 @@ class LibraryController:
             return
 
         self.dialog_manager.modify_book(book)
-        self.update_viewport()
+        self.readBooks()
+        self.update_viewport_books()
 
-    def borrow_book(self, index):
-        print(f"Emprunter {index}")
-        book = self.get_selected_book()
-        if book is None:
-            return
-
-        button = QMessageBox.question(
-            self.view,
-            "Emprunter ce livre",
-            f"Etes-vous sûr de vouloir emprunter ce livre {book}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if button == QMessageBox.StandardButton.Yes:
-            print("Emprunter le livre", book)
-
-    def restore_book(self, index):
+    def restore_book(self, index: int):
         print(f"Restituer {index}")
         book = self.get_selected_book()
         if book is None:
@@ -304,7 +315,7 @@ class LibraryController:
         if button == QMessageBox.StandardButton.Yes:
             print("Restituer le livre", book)
 
-    def get_selected_indexes(self, custom_table_view):
+    def get_selected_indexes(self, custom_table_view: CustomTableView):
         """Get the selected indexes from the table"""
         indexes = custom_table_view.selectedIndexes()
         if indexes is None or len(indexes) == 0:
@@ -358,12 +369,7 @@ class LibraryController:
                 date_publication = self.books_model.data(
                     self.books_model.index(row, 4), role
                 )
-                disponibilite = self.books_model.data(
-                    self.books_model.index(row, 5), Qt.ItemDataRole.UserRole
-                )
-                selected_book = Book(
-                    titre, auteur, genre, date_publication, disponibilite, id
-                )
+                selected_book = Book(titre, auteur, genre, date_publication, id)
                 break
 
         return selected_book
