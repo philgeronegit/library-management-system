@@ -26,7 +26,7 @@ The Library Management System is a software application designed to manage the o
 1. **Clone the repository**:
 
 ```sh
-git clone https://github.com/yourusername/library-management-system.git
+git clone https://github.com/philgeronegit/library-management-system.git
 cd library-management-system
 ```
 
