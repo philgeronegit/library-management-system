@@ -1,4 +1,5 @@
 from librarymanagementsystem.controllers.database import Database
+from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
 from librarymanagementsystem.models.user import User
 
@@ -141,8 +142,21 @@ class DatabaseManager:
         query = f"DELETE FROM livres WHERE id_livres = {book_id}"
         self.database.exec_query_with_commit(query)
 
+    def delete_author(self, author_id: int):
+        query = f"DELETE FROM auteurs WHERE id_auteurs = {author_id}"
+        self.database.exec_query_with_commit(query)
+
     def delete_user(self, user_id: int):
         query = f"DELETE FROM utilisateurs WHERE id_utilisateurs = {user_id}"
+        self.database.exec_query_with_commit(query)
+
+    def insert_author(self, author: Author):
+        query = f"""
+          INSERT INTO auteurs
+            (prenom, nom)
+          VALUES
+            ('{author.firstname}', '{author.lastname}')
+        """
         self.database.exec_query_with_commit(query)
 
     def insert_user(self, user: User):
@@ -168,6 +182,14 @@ class DatabaseManager:
           UPDATE livres
           SET titre = '{book.titre}', auteur = '{book.auteur}', genre = '{book.genre}', date_publication = '{book.date_publication}'
           WHERE id_livres = {book.id}
+        """
+        self.database.exec_query_with_commit(query)
+
+    def modify_author(self, author: Author):
+        query = f"""
+          UPDATE auteurs
+          SET prenom = '{author.firstname}', nom = '{author.lastname}'
+          WHERE id_auteurs = {author.id}
         """
         self.database.exec_query_with_commit(query)
 
