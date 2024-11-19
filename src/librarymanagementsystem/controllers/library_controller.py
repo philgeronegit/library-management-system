@@ -5,6 +5,7 @@ from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
 from librarymanagementsystem.controllers.ui_manager import UIManager
+from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.models.user import User
@@ -124,33 +125,28 @@ class LibraryController:
         self.books_model = TableModel(df)
         self.update_viewport_books()
 
-    def update_viewport_books(self):
+    def update_viewport(self, table_view, model):
         # Get the current sort column and order
-        sort_column = self.view.books_table.horizontalHeader().sortIndicatorSection()
-        sort_order = self.view.books_table.horizontalHeader().sortIndicatorOrder()
+        sort_column = table_view.horizontalHeader().sortIndicatorSection()
+        sort_order = table_view.horizontalHeader().sortIndicatorOrder()
 
-        self.view.books_table.setModel(self.books_model)
-        self.view.books_table.resizeColumnsToContents()
-        self.view.books_table.viewport().update()
+        # Set the model to the table view
+        table_view.setModel(model)
+        table_view.resizeColumnsToContents()
+        table_view.viewport().update()
 
         # Reapply the sort order
-        self.view.books_table.sortByColumn(sort_column, sort_order)
+        table_view.sortByColumn(sort_column, sort_order)
 
+    def update_viewport_authors(self):
+        self.update_viewport(self.view.authors_table, self.authors_model)
+
+    def update_viewport_books(self):
+        self.update_viewport(self.view.books_table, self.books_model)
         self.show_books_number()
 
     def update_viewport_users(self):
-        # Get the current sort column and order
-        sort_column = self.view.users_table.horizontalHeader().sortIndicatorSection()
-        sort_order = self.view.users_table.horizontalHeader().sortIndicatorOrder()
-
-        self.view.users_table.setModel(self.users_model)
-        self.view.users_table.resizeColumnsToContents()
-        self.view.users_table.viewport().update()
-
-        # Reapply the sort order
-        self.view.users_table.sortByColumn(sort_column, sort_order)
-
-        self.show_books_number()
+        self.update_viewport(self.view.users_table, self.users_model)
 
     def filter_change(self, type: str):
         print(f"Filter change {type}")
@@ -162,8 +158,20 @@ class LibraryController:
         print(f"Supprimer {name} {index}")
         if name == "books":
             self.delete_book()
+        elif name == "authors":
+            self.delete_author()
         elif name == "users":
             self.delete_user()
+
+    def delete_author(self):
+        """Delete a author from the list"""
+        author = self.get_selected_author()
+        if author is None:
+            return
+
+        self.dialog_manager.delete_author(author)
+        self.read_authors()
+        self.update_viewport_authors()
 
     def delete_user(self):
         """Delete a user from the list"""
@@ -172,6 +180,8 @@ class LibraryController:
             return
 
         self.dialog_manager.delete_user(user)
+        self.read_users()
+        self.update_viewport_users()
 
     def delete_book(self):
         """Delete a book from the list"""
@@ -230,9 +240,17 @@ class LibraryController:
         self.selected_user = None
         self.view.update_user_actions(None)
 
+    def add_author(self):
+        """Add a new author to the list"""
+        self.dialog_manager.add_author()
+        self.read_authors()
+        self.update_viewport_authors()
+
     def add_user(self):
         """Add a new user to the list"""
         self.dialog_manager.add_user()
+        self.read_users()
+        self.update_viewport_users()
 
     def add_book(self):
         """Add a new book to the list"""
@@ -255,6 +273,8 @@ class LibraryController:
         if button == QMessageBox.StandardButton.Yes:
             print("Emprunter le livre")
             self.database_manager.borrow_book(book.id)
+            self.read_books()
+            self.update_viewport_books()
 
     def restore_books(self):
         book = self.get_selected_book()
@@ -289,6 +309,8 @@ class LibraryController:
     def add_item(self, name: str):
         if name == "books":
             self.add_book()
+        elif name == "authors":
+            self.add_author()
         elif name == "users":
             self.add_user()
 
@@ -296,8 +318,20 @@ class LibraryController:
         print(f"Modifier {name} {index}")
         if name == "books":
             self.modify_book()
+        elif name == "authors":
+            self.modify_author()
         elif name == "users":
             self.modify_user()
+
+    def modify_author(self):
+        """Modify a quthor from the list"""
+        author = self.get_selected_author()
+        if author is None:
+            return
+
+        self.dialog_manager.modify_author(author)
+        self.read_authors()
+        self.update_viewport_authors()
 
     def modify_user(self):
         """Modify a user from the list"""
@@ -343,6 +377,27 @@ class LibraryController:
             return None
 
         return indexes
+
+    def get_selected_author(self) -> dict:
+        """Get the selected author from the table"""
+        indexes = self.get_selected_indexes(self.view.authors_table)
+        if indexes is None:
+            return None
+
+        selected_author = None
+
+        for index in indexes:
+            if index.isValid():
+                row = index.row()
+                role = Qt.ItemDataRole.DisplayRole
+
+                id = self.authors_model.data(self.authors_model.index(row, 0), role)
+                nom = self.authors_model.data(self.authors_model.index(row, 1), role)
+                prenom = self.authors_model.data(self.authors_model.index(row, 2), role)
+                selected_author = Author(prenom, nom, id)
+                break
+
+        return selected_author
 
     def get_selected_user(self) -> dict:
         """Get the selected user from the table"""
