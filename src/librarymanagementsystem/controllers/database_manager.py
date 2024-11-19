@@ -1,6 +1,7 @@
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
+from librarymanagementsystem.models.genre import Genre
 from librarymanagementsystem.models.user import User
 
 
@@ -138,6 +139,10 @@ class DatabaseManager:
         query = "SELECT * FROM regles_prets;"
         return self.database.exec_query(query)
 
+    def delete_genre(self, genre_id: int):
+        query = f"DELETE FROM genres WHERE id_genres = {genre_id}"
+        self.database.exec_query_with_commit(query)
+
     def delete_book(self, book_id: int):
         query = f"DELETE FROM livres WHERE id_livres = {book_id}"
         self.database.exec_query_with_commit(query)
@@ -148,6 +153,15 @@ class DatabaseManager:
 
     def delete_user(self, user_id: int):
         query = f"DELETE FROM utilisateurs WHERE id_utilisateurs = {user_id}"
+        self.database.exec_query_with_commit(query)
+
+    def insert_genre(self, genre: Genre):
+        query = f"""
+          INSERT INTO genres
+            (nom)
+          VALUES
+            ('{genre.name}')
+        """
         self.database.exec_query_with_commit(query)
 
     def insert_author(self, author: Author):
@@ -182,6 +196,14 @@ class DatabaseManager:
           UPDATE livres
           SET titre = '{book.titre}', auteur = '{book.auteur}', genre = '{book.genre}', date_publication = '{book.date_publication}'
           WHERE id_livres = {book.id}
+        """
+        self.database.exec_query_with_commit(query)
+
+    def modify_genre(self, genre: Genre):
+        query = f"""
+          UPDATE genres
+          SET nom = '{genre.name}'
+          WHERE id_genres = {genre.id}
         """
         self.database.exec_query_with_commit(query)
 
