@@ -1,6 +1,5 @@
 import os
 
-import mysql.connector as connection
 import pandas as pd
 import sqlalchemy
 from dotenv import load_dotenv
@@ -19,15 +18,6 @@ class Database:
         connection_string = f"mysql+pymysql://{self.user}:{self.password if self.password is not None else ""}@{self.host}/{self.database}"
         return sqlalchemy.create_engine(connection_string, echo=False)
 
-    def getConnection(self) -> connection.MySQLConnection:
-        return connection.connect(
-            host=self.host,
-            database=self.database,
-            user=self.user,
-            password=self.password,
-            use_pure=True,
-        )
-
     def exec_query(self, query: str) -> pd.DataFrame:
         try:
             engine = self.getEngine()
@@ -40,14 +30,14 @@ class Database:
 
                 return result_dataFrame
         except Exception as e:
-            print("Failed to read table {}".format(e))
+            print("Erreur lors de la lecture de la table {}".format(e))
 
     def exec_query_with_commit(self, query: str):
         try:
             engine = self.getEngine()
             with engine.connect() as conn:
                 result = conn.execute(sqlalchemy.text(query))
-                conn.commit()  # Save the changes to the database
+                conn.commit()
                 print(
                     result.rowcount, "Enregistrement modifié avec succès dans la table"
                 )
