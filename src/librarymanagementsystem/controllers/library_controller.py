@@ -7,6 +7,7 @@ from librarymanagementsystem.controllers.dialog_manager import DialogManager
 from librarymanagementsystem.controllers.ui_manager import UIManager
 from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
+from librarymanagementsystem.models.genre import Genre
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.models.user import User
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
@@ -138,6 +139,9 @@ class LibraryController:
         # Reapply the sort order
         table_view.sortByColumn(sort_column, sort_order)
 
+    def update_viewport_genres(self):
+        self.update_viewport(self.view.genres_table, self.genres_model)
+
     def update_viewport_authors(self):
         self.update_viewport(self.view.authors_table, self.authors_model)
 
@@ -155,13 +159,25 @@ class LibraryController:
         self.update_viewport_books()
 
     def delete_selected_item(self, name: str, index: int):
-        print(f"Supprimer {name} {index}")
+        """Delete the selected item from the table"""
         if name == "books":
             self.delete_book()
+        elif name == "genres":
+            self.delete_genre()
         elif name == "authors":
             self.delete_author()
         elif name == "users":
             self.delete_user()
+
+    def delete_genre(self):
+        """Delete a genre from the list"""
+        genre = self.get_selected_genre()
+        if genre is None:
+            return
+
+        self.dialog_manager.delete_genre(genre)
+        self.read_genres()
+        self.update_viewport_genres()
 
     def delete_author(self):
         """Delete a author from the list"""
@@ -240,6 +256,12 @@ class LibraryController:
         self.selected_user = None
         self.view.update_user_actions(None)
 
+    def add_genre(self):
+        """Add a new genre to the list"""
+        self.dialog_manager.add_genre()
+        self.read_genres()
+        self.update_viewport_genres()
+
     def add_author(self):
         """Add a new author to the list"""
         self.dialog_manager.add_author()
@@ -309,6 +331,8 @@ class LibraryController:
     def add_item(self, name: str):
         if name == "books":
             self.add_book()
+        elif name == "genres":
+            self.add_genre()
         elif name == "authors":
             self.add_author()
         elif name == "users":
@@ -318,10 +342,22 @@ class LibraryController:
         print(f"Modifier {name} {index}")
         if name == "books":
             self.modify_book()
+        elif name == "genres":
+            self.modify_genre()
         elif name == "authors":
             self.modify_author()
         elif name == "users":
             self.modify_user()
+
+    def modify_genre(self):
+        """Modify a quthor from the list"""
+        genre = self.get_selected_genre()
+        if genre is None:
+            return
+
+        self.dialog_manager.modify_genre(genre)
+        self.read_genres()
+        self.update_viewport_genres()
 
     def modify_author(self):
         """Modify a quthor from the list"""
@@ -377,6 +413,26 @@ class LibraryController:
             return None
 
         return indexes
+
+    def get_selected_genre(self) -> dict:
+        """Get the selected genre from the table"""
+        indexes = self.get_selected_indexes(self.view.genres_table)
+        if indexes is None:
+            return None
+
+        selected_genre = None
+
+        for index in indexes:
+            if index.isValid():
+                row = index.row()
+                role = Qt.ItemDataRole.DisplayRole
+
+                id = self.genres_model.data(self.genres_model.index(row, 0), role)
+                nom = self.genres_model.data(self.genres_model.index(row, 1), role)
+                selected_genre = Genre(nom, id)
+                break
+
+        return selected_genre
 
     def get_selected_author(self) -> dict:
         """Get the selected author from the table"""
