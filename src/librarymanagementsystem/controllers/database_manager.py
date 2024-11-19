@@ -133,6 +133,10 @@ class DatabaseManager:
         query = "SELECT * FROM genres;"
         return self.database.exec_query(query)
 
+    def read_notifications(self):
+        query = "SELECT * FROM notifications;"
+        return self.database.exec_query(query)
+
     def read_borrow_rules(self):
         query = "SELECT * FROM regles_prets;"
         return self.database.exec_query(query)

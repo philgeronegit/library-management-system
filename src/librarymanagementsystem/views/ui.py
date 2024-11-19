@@ -169,6 +169,12 @@ class LibraryView(QMainWindow):
 
         self.create_toolbar()
 
+        self.poll_notifications_timer = QTimer()
+        self.poll_notifications_timer.timeout.connect(
+            self.controller.poll_notifications
+        )
+        self.poll_notifications_timer.start(5000)
+
         # Create a QTimer for debouncing
         self.search_timer = QTimer()
         self.search_timer.setSingleShot(True)

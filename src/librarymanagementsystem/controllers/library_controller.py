@@ -1,3 +1,5 @@
+import datetime
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
@@ -6,6 +8,7 @@ from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
 from librarymanagementsystem.controllers.ui_manager import UIManager
 from librarymanagementsystem.models.book import Book
+from librarymanagementsystem.models.notification import Notification
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.models.user import User
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
@@ -29,6 +32,7 @@ class LibraryController:
         self.selected_user = None
         self.duree_maximale_emprunt = None
         self.penalite_retard = None
+        self.notifications = []
 
     def read_books(self):
         df = self.database_manager.read_books(filter_type=self.filter_type)
@@ -46,6 +50,32 @@ class LibraryController:
     def read_genres(self):
         df = self.database_manager.read_genres()
         self.genres_model = TableModel(df)
+
+    def read_notifications(self):
+        df = self.database_manager.read_notifications()
+        notifications = []
+        for index, row in df.iterrows():
+            notification = Notification(
+                row["type"],
+                row["contenu"],
+                row["date_notification"],
+                row["id_utilisateurs"],
+                row["id_notifications"],
+            )
+            notifications.append(notification)
+            print(notification)
+        self.notifications = notifications
+
+    def check_notifications(self):
+        # TODO: check if there are books that are overdue
+        pass
+
+    def poll_notifications(self):
+        now = datetime.datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        print(f"{dt_string } Poll notifications")
+        self.check_notifications()
+        self.read_notifications()
 
     def read_borrow_rules(self):
         df = self.database_manager.read_borrow_rules()
