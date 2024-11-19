@@ -72,10 +72,10 @@ class UserDialog(QDialog):
 
     def populate_fields(self, user: User):
         self.user = user
-        self.name_input.setText(user.nom)
+        self.name_input.setText(user.username)
         self.contact_input.setText(user.contact)
-        self.status_input.setText(user.statut)
-        self.password_input.setText(user.mot_de_passe)
+        self.status_input.setText(user.status)
+        self.password_input.setText(user.password)
         self.validate_inputs()
         self.setWindowTitle("Modifier utilisateur")
         self.add_button.setText("Modifier")

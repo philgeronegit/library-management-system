@@ -376,6 +376,8 @@ class LibraryController:
             return
 
         self.dialog_manager.modify_user(user)
+        self.read_users()
+        self.update_viewport_users()
 
     def modify_book(self):
         """Modify a book from the list"""
@@ -468,11 +470,11 @@ class LibraryController:
                 row = index.row()
                 role = Qt.ItemDataRole.DisplayRole
 
-                id = self.books_model.data(self.books_model.index(row, 0), role)
-                nom = self.books_model.data(self.books_model.index(row, 1), role)
-                mot_passe = self.books_model.data(self.books_model.index(row, 2), role)
-                contact = self.books_model.data(self.books_model.index(row, 3), role)
-                statut = self.books_model.data(self.books_model.index(row, 4), role)
+                id = self.users_model.data(self.users_model.index(row, 0), role)
+                nom = self.users_model.data(self.users_model.index(row, 1), role)
+                mot_passe = self.users_model.data(self.users_model.index(row, 2), role)
+                contact = self.users_model.data(self.users_model.index(row, 3), role)
+                statut = self.users_model.data(self.users_model.index(row, 4), role)
                 selected_user = User(nom, contact, statut, mot_passe, id)
                 break
 

@@ -134,7 +134,7 @@ class DialogManager:
         button = QMessageBox.question(
             self.view,
             "Supprimer utilisateur",
-            f"Etes-vous sûr de vouloir supprimer l'utilisateur {user.nom} ?",
+            f"Etes-vous sûr de vouloir supprimer l'utilisateur {user.username} ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if button == QMessageBox.StandardButton.Yes:

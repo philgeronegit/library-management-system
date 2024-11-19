@@ -178,7 +178,7 @@ class DatabaseManager:
           INSERT INTO utilisateurs
             (nom, contact, statut, mot_passe)
           VALUES
-            ('{user.nom}', '{user.contact}', '{user.statut}', '{user.mot_passe}')
+            ('{user.username}', '{user.contact}', '{user.status}', '{user.password}')
         """
         self.database.exec_query_with_commit(query)
 
@@ -218,7 +218,7 @@ class DatabaseManager:
     def modify_user(self, user: User):
         query = f"""
           UPDATE utilisateurs
-          SET nom = '{user.nom}', contact = '{user.contact}', statut = '{user.statut}', mot_passe = '{user.mot_passe}'
+          SET nom = '{user.username}', contact = '{user.contact}', statut = '{user.status}', mot_passe = '{user.password}'
           WHERE id_utilisateurs = {user.id}
         """
         self.database.exec_query_with_commit(query)
