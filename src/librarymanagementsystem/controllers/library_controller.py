@@ -5,6 +5,7 @@ from librarymanagementsystem.controllers.book_dal import BookDAL
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
+from librarymanagementsystem.controllers.genre_dal import GenreDAL
 from librarymanagementsystem.controllers.ui_manager import UIManager
 from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
@@ -28,6 +29,7 @@ class LibraryController:
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
         self.book_dal = BookDAL(self.database)
+        self.genre_dal = GenreDAL(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
         self.ui_manager = UIManager(self.view)
         self.selected_user = None
@@ -48,7 +50,7 @@ class LibraryController:
         self.authors_model = TableModel(df)
 
     def read_genres(self):
-        df = self.database_manager.read_genres()
+        df = self.genre_dal.read_genres()
         self.genres_model = TableModel(df)
 
     def read_borrow_rules(self):
@@ -176,7 +178,10 @@ class LibraryController:
         if genre is None:
             return
 
-        self.dialog_manager.delete_genre(genre)
+        to_delete = self.dialog_manager.delete_genre(genre)
+        if not to_delete:
+            return
+        self.genre_dal.delete_genre(genre.id)
         self.read_genres()
         self.update_viewport_genres()
 
@@ -278,7 +283,10 @@ class LibraryController:
 
     def add_genre(self):
         """Add a new genre to the list"""
-        self.dialog_manager.add_genre()
+        new_genre = self.dialog_manager.add_genre()
+        if new_genre is None:
+            return
+        self.genre_dal.insert_genre(new_genre)
         self.read_genres()
         self.update_viewport_genres()
 
@@ -409,7 +417,10 @@ class LibraryController:
         if genre is None:
             return
 
-        self.dialog_manager.modify_genre(genre)
+        existing_genre = self.dialog_manager.modify_genre(genre)
+        if existing_genre is None:
+            return
+        self.genre_dal.modify_genre(existing_genre)
         self.read_genres()
         self.update_viewport_genres()
 

@@ -16,13 +16,14 @@ class DialogManager:
         self.view = view
         self.database_manager = database_manager
 
-    def add_genre(self):
+    def add_genre(self) -> Genre | None:
         dialog = GenreDialog()
         response = dialog.exec()
         if response == QDialog.Accepted:
             data = dialog.get_data()
             new_genre = Genre(data["nom"])
-            self.database_manager.insert_genre(new_genre)
+            return new_genre
+        return None
 
     def add_author(self):
         dialog = AuthorDialog()
@@ -73,7 +74,7 @@ class DialogManager:
             return True
         return False
 
-    def modify_genre(self, genre: Genre):
+    def modify_genre(self, genre: Genre) -> Genre | None:
         dialog = GenreDialog()
         dialog.populate_fields(genre)
         if dialog.exec() == QDialog.Accepted:
@@ -82,7 +83,8 @@ class DialogManager:
                 data["nom"],
                 genre.id,
             )
-            self.database_manager.modify_genre(existing_genre)
+            return existing_genre
+        return None
 
     def modify_author(self, author: Author):
         dialog = AuthorDialog()
@@ -110,7 +112,7 @@ class DialogManager:
             )
             self.database_manager.modify_user(existing_user)
 
-    def delete_genre(self, genre: Genre):
+    def delete_genre(self, genre: Genre) -> bool:
         button = QMessageBox.question(
             self.view,
             "Supprimer genre",
@@ -118,7 +120,8 @@ class DialogManager:
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if button == QMessageBox.StandardButton.Yes:
-            self.database_manager.delete_genre(genre.id)
+            return True
+        return False
 
     def delete_author(self, author: Author):
         button = QMessageBox.question(
