@@ -8,10 +8,14 @@ from librarymanagementsystem.models.book import Book
 
 
 class TableModel(QtCore.QAbstractTableModel):
-    def __init__(self, data):
+    def __init__(self, data: pd.DataFrame):
         super().__init__()
         self.__data = data
         self.__filtered_data = self.__data.copy()
+
+    @property
+    def raw_data(self) -> pd.DataFrame:
+        return self.__data
 
     def data(self, index, role):
         if not index.isValid():

@@ -15,6 +15,10 @@ class Author:
     def __str__(self):
         return f"Author(firstname={self.firstname}, lastname={self.lastname})"
 
+    @property
+    def fullname(self):
+        return f"{self.firstname} {self.lastname}"
+
     @staticmethod
     def headers() -> list[str]:
         return [" Id ", " Prénom ", " Nom "]

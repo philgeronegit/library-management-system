@@ -45,15 +45,34 @@ class DialogManager:
             )
             self.database_manager.insert_user(new_user)
 
-    def add_book(self):
+    def add_book(self, authors, genres) -> dict | None:
         dialog = BookDialog()
+        dialog.populate_fields(None, authors, genres)
         response = dialog.exec()
         if response == QDialog.Accepted:
             data = dialog.get_data()
-            new_book = Book(
-                data["titre"], data["auteur"], data["genre"], data["date_publication"]
-            )
-            self.database_manager.insert_book(new_book)
+            return data
+        return None
+
+    def modify_book(self, book: Book, authors, genres) -> dict | None:
+        print(book)
+        dialog = BookDialog()
+        dialog.populate_fields(book, authors, genres)
+        if dialog.exec() == QDialog.Accepted:
+            data = dialog.get_data()
+            return data
+        return None
+
+    def delete_book(self, book: Book):
+        button = QMessageBox.question(
+            self.view,
+            "Supprimer livre",
+            f"Etes-vous sûr de vouloir supprimer le livre {book.titre} ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if button == QMessageBox.StandardButton.Yes:
+            return True
+        return False
 
     def modify_genre(self, genre: Genre):
         dialog = GenreDialog()
@@ -96,20 +115,6 @@ class DialogManager:
             )
             self.database_manager.modify_user(existing_user)
 
-    def modify_book(self, book: Book):
-        dialog = BookDialog()
-        dialog.populate_fields(book)
-        if dialog.exec() == QDialog.Accepted:
-            data = dialog.get_data()
-            existing_book = Book(
-                data["titre"],
-                data["auteur"],
-                data["genre"],
-                data["date_publication"],
-                book.id,
-            )
-            self.database_manager.modify_book(existing_book)
-
     def delete_genre(self, genre: Genre):
         button = QMessageBox.question(
             self.view,
@@ -139,16 +144,6 @@ class DialogManager:
         )
         if button == QMessageBox.StandardButton.Yes:
             self.database_manager.delete_user(user.id)
-
-    def delete_book(self, book: Book):
-        button = QMessageBox.question(
-            self.view,
-            "Supprimer livre",
-            f"Etes-vous sûr de vouloir supprimer le livre {book.titre} ?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if button == QMessageBox.StandardButton.Yes:
-            self.database_manager.delete_book(book.id)
 
     def show_message(self, title: str, message: str):
         QMessageBox.information(self.view, title, message)
