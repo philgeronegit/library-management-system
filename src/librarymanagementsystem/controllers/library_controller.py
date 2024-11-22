@@ -12,8 +12,8 @@ from librarymanagementsystem.models.genre import Genre
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.models.user import User
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
+from librarymanagementsystem.views.login_dialog import LoginDialog
 from librarymanagementsystem.views.ui import LibraryView
-from librarymanagementsystem.views.user_dialog import UserDialog
 
 
 class LibraryController:
@@ -120,7 +120,6 @@ class LibraryController:
         df = self.database_manager.read_books(
             filter_type="search", filter_text=search_text
         )
-        print(df)
         if df.empty:
             print("Pas de résultats")
             return
@@ -214,42 +213,59 @@ class LibraryController:
         self.update_viewport_books()
 
     def login(self):
-        dialog = UserDialog()
+        dialog = LoginDialog()
         response = dialog.exec()
         if response == QDialog.Accepted:
             data = dialog.get_data()
-            user = User(
-                data["nom"],
-                data["contact"],
-                data["statut"],
-                data["mot_passe"],
-                data["id"],
-            )
-            # lowercase the username
-            if (user.name == "admin") and (user.password == "admin"):
-                user.role = "admin"
+            username = data["nom"]
+            password = data["mot_passe"]
+            if (username == "admin") and (password == "admin"):
+                user = User(username, "admin", "actif", password, role="admin")
                 self.login_as_user(user)
             else:
-                # search user in the pandas dataframe (self.users) with nom and mot_de_passe
-                user = self.users[(self.users["nom"] == user.username)]
+                users_df = self.users_model.raw_data
+                user = users_df[(users_df["nom"] == username)]
                 if user.empty:
                     QMessageBox.information(
-                        self.view, "Utilisateur non trouvé", "Utilisateur non trouvé"
+                        self.view, "Utilisateur", "Utilisateur non trouvé"
                     )
                 else:
-                    if user.iloc[0]["mot_de_passe"] != data["mot_de_passe"]:
+                    user_password = user.iloc[0]["mot_passe"]
+                    if user_password != user_password:
                         QMessageBox.information(
                             self.view,
-                            "Mot de passe incorrect",
+                            "Utilisateur",
                             "Mot de passe incorrect",
                         )
                     else:
-                        self.login_as_user(user.iloc[0])
+                        status = user.iloc[0]["statut"]
+                        if status == "actif":
+                            user = User(
+                                user.iloc[0]["nom"],
+                                user.iloc[0]["contact"],
+                                user.iloc[0]["statut"],
+                                user.iloc[0]["mot_passe"],
+                                user.iloc[0]["id_utilisateurs"],
+                                user.iloc[0]["role"],
+                            )
+                            self.login_as_user(user)
+                        elif status == "inactif":
+                            QMessageBox.information(
+                                self.view,
+                                "Utilisateur",
+                                "Utilisateur inactif",
+                            )
+                        elif status == "en-attente":
+                            QMessageBox.information(
+                                self.view,
+                                "Utilisateur",
+                                "Utilisateur en attente",
+                            )
 
     def login_as_user(self, user: User):
         """Login as a user"""
-        self.view.statusBar().showMessage(f"Connecté en tant que {user.name}")
-        self.view.setWindowTitle(f"Librairie - Connecté en tant que : {user.name}")
+        self.view.statusBar().showMessage(f"Connecté en tant que {user.username}")
+        self.view.setWindowTitle(f"Librairie - Connecté en tant que : {user.username}")
         self.selected_user = user
         self.view.update_user_actions(user)
 
@@ -281,6 +297,8 @@ class LibraryController:
     def add_book(self):
         """Add a new book to the list"""
         book_data = self.dialog_manager.add_book(self.authors_model, self.genres_model)
+        if book_data is None:
+            return
         new_book = self.create_book(
             book_data["titre"],
             book_data["auteur_id"],
@@ -593,8 +611,10 @@ class LibraryController:
         return Book(titre, auteur, genre, date_publication, id)
 
     def save_regles_prets_clicked(self):
-        duree = self.view.duree_maximale_emprunt_input.text()
-        penalite = self.view.penalite
+        duree = self.view.duree_maximale_emprunt_input.text().strip()
+        penalite = self.view.penalite_retard_input.text().strip()
         print(f"Durée: {duree}")
         print(f"Pénalité: {penalite}")
         self.database_manager.modify_borrow_rules(int(duree), int(penalite))
+        self.read_books()
+        self.update_viewport_books()

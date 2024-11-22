@@ -55,7 +55,6 @@ class DialogManager:
         return None
 
     def modify_book(self, book: Book, authors, genres) -> dict | None:
-        print(book)
         dialog = BookDialog()
         dialog.populate_fields(book, authors, genres)
         if dialog.exec() == QDialog.Accepted:
@@ -83,8 +82,6 @@ class DialogManager:
                 data["nom"],
                 genre.id,
             )
-            print(data)
-            print(existing_genre)
             self.database_manager.modify_genre(existing_genre)
 
     def modify_author(self, author: Author):
@@ -97,8 +94,6 @@ class DialogManager:
                 data["nom"],
                 author.id,
             )
-            print(data)
-            print(existing_author)
             self.database_manager.modify_author(existing_author)
 
     def modify_user(self, user: User):
