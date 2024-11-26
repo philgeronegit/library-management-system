@@ -27,8 +27,8 @@ class UserDialog(QDialog):
         label, self.name_input = input_factory("Nom :")
         self.form_layout.addRow(label, self.name_input)
 
-        label, self.contact_input = input_factory("Contact :")
-        self.form_layout.addRow(label, self.contact_input)
+        label, self.email_input = input_factory("Email :")
+        self.form_layout.addRow(label, self.email_input)
 
         label, self.status_input = input_factory("Statut :")
         self.form_layout.addRow(label, self.status_input)
@@ -51,21 +51,21 @@ class UserDialog(QDialog):
     def get_data(self) -> dict:
         return {
             "nom": self.name_input.text().strip(),
-            "contact": self.contact_input.text().strip(),
+            "email": self.email_input.text().strip(),
             "statut": self.status_input.text().strip(),
-            "mot_passe": self.password_input.text().strip(),
+            "hash_mot_passe": self.password_input.text().strip(),
             "id": self.user.id if hasattr(self, "user") else None,
         }
 
     def validate_inputs(self) -> None:
         # Validates the inputs and enables the Add button
         name = self.name_input.text().strip()
-        contact = self.contact_input.text().strip()
+        email = self.email_input.text().strip()
         status = self.status_input.text().strip()
         password = self.password_input.text().strip()
 
         # Enable the Add button only if all fields are not empty and valid
-        if name and password and contact and status and len(password) >= 3:
+        if name and password and email and status and len(password) >= 3:
             self.add_button.setEnabled(True)
         else:
             self.add_button.setEnabled(False)
@@ -73,7 +73,7 @@ class UserDialog(QDialog):
     def populate_fields(self, user: User):
         self.user = user
         self.name_input.setText(user.username)
-        self.contact_input.setText(user.contact)
+        self.email_input.setText(user.email)
         self.status_input.setText(user.status)
         self.password_input.setText(user.password)
         self.validate_inputs()

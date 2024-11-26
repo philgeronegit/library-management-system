@@ -40,15 +40,15 @@ class DialogManager:
             data = dialog.get_data()
             new_user = User(
                 data["nom"],
-                data["contact"],
+                data["email"],
                 data["statut"],
-                data["mot_passe"],
+                data["hash_mot_passe"],
             )
             self.database_manager.insert_user(new_user)
 
     def add_book(self, authors, genres) -> dict | None:
-        dialog = BookDialog()
-        dialog.populate_fields(None, authors, genres)
+        dialog = BookDialog(authors, genres)
+        dialog.populate_fields(None)
         response = dialog.exec()
         if response == QDialog.Accepted:
             data = dialog.get_data()
@@ -56,8 +56,8 @@ class DialogManager:
         return None
 
     def modify_book(self, book: Book, authors, genres) -> dict | None:
-        dialog = BookDialog()
-        dialog.populate_fields(book, authors, genres)
+        dialog = BookDialog(authors, genres)
+        dialog.populate_fields(book)
         if dialog.exec() == QDialog.Accepted:
             data = dialog.get_data()
             return data
@@ -105,9 +105,9 @@ class DialogManager:
             data = dialog.get_data()
             existing_user = User(
                 data["nom"],
-                data["contact"],
+                data["email"],
                 data["statut"],
-                data["mot_passe"],
+                data["hash_mot_passe"],
                 user.id,
             )
             self.database_manager.modify_user(existing_user)

@@ -5,7 +5,7 @@ class User:
     def __init__(
         self,
         username: str,
-        contact: str,
+        email: str,
         status: str,
         password: str,
         id: int = None,
@@ -13,24 +13,24 @@ class User:
     ):
         self.id = id or int(uuid.uuid4())
         self.username = username
-        self.contact = contact
+        self.email = email
         self.status = status
         self.password = password
         self.role = role
 
     def __str__(self):
-        return f"User(username={self.username}, contact={self.contact}, status={self.status}, password={self.password})"
+        return f"User(username={self.username}, contact={self.email}, status={self.status}, password={self.password})"
 
     @staticmethod
     def headers() -> list[str]:
-        return [" Id ", " Nom ", " Mot de passe ", " Contact ", " Status "]
+        return [" Id ", " Nom ", " Mot de passe ", " Email ", " Status "]
 
     def to_list(self) -> list:
         # Returns a list of the user's attributes
         return [
             self.id,
             self.username,
-            self.contact,
+            self.email,
             self.status,
             self.password,
         ]

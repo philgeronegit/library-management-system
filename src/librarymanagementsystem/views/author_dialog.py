@@ -1,4 +1,5 @@
 import qtawesome as qta
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
 from librarymanagementsystem.models.author import Author
@@ -12,6 +13,9 @@ class AuthorDialog(QDialog):
         self.setFixedSize(400, 200)
         self.setWindowIcon(qta.icon("fa5s.book-reader"))
 
+        self.create_ui()
+
+    def create_ui(self):
         self.layout = QVBoxLayout()
 
         self.form_layout = QFormLayout()
@@ -33,6 +37,15 @@ class AuthorDialog(QDialog):
 
         self.layout.addLayout(self.button_layout)
         self.setLayout(self.layout)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            if self.add_button.isEnabled():
+                self.accept()
+            else:
+                event.ignore()
+        else:
+            super().keyPressEvent(event)
 
     def get_data(self) -> dict:
         return {

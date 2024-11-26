@@ -210,6 +210,9 @@ class LibraryView(QMainWindow):
             self.borrow_action.setEnabled(False)
             self.restore_action.setEnabled(False)
             self.reserve_action.setEnabled(False)
+            self.books_table.add_action.setEnabled(True)
+            self.books_table.modify_action.setEnabled(True)
+            self.books_table.delete_action.setEnabled(True)
         else:
             self.add_action.setEnabled(False)
             self.modify_action.setEnabled(False)
@@ -217,6 +220,9 @@ class LibraryView(QMainWindow):
             self.borrow_action.setEnabled(True)
             self.restore_action.setEnabled(True)
             self.reserve_action.setEnabled(True)
+            self.books_table.add_action.setEnabled(False)
+            self.books_table.modify_action.setEnabled(False)
+            self.books_table.delete_action.setEnabled(False)
 
     def create_toolbar(self):
         toolbar = QToolBar("Main Toolbar")
@@ -240,10 +246,13 @@ class LibraryView(QMainWindow):
         self.delete_action.setShortcut("Ctrl+D")
         toolbar.addAction(self.delete_action)
         self.borrow_action = QAction(borrow_icon, "Emprunter livre", self)
+        self.borrow_action.setEnabled(False)
         toolbar.addAction(self.borrow_action)
         self.restore_action = QAction(restore_books_icon, "Rendre livre", self)
+        self.restore_action.setEnabled(False)
         toolbar.addAction(self.restore_action)
         self.reserve_action = QAction(reserve_icon, "Réserver livre", self)
+        self.reserve_action.setEnabled(False)
         toolbar.addAction(self.reserve_action)
 
         self.add_action.triggered.connect(self.controller.add_book)

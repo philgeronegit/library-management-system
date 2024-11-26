@@ -1,7 +1,8 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
-from librarymanagementsystem.controllers.book_dal import BookDAL
+from librarymanagementsystem.bll.book_bll import BookBLL
+from librarymanagementsystem.bll.loan_bll import LoanBLL
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
@@ -28,16 +29,21 @@ class LibraryController:
         self.genres_model = None
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
-        self.book_dal = BookDAL(self.database)
         self.genre_dal = GenreDAL(self.database)
+        self.book_bll = BookBLL(self.database)
+        self.loan_bll = LoanBLL(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
         self.ui_manager = UIManager(self.view)
         self.selected_user = None
         self.duree_maximale_emprunt = None
         self.penalite_retard = None
 
+        user = User("John Doe", "admin", "actif", "admin", 1, role="user")
+        # user = User("admin", "admin", "actif", "admin", 1000, role="admin")
+        self.login_as_user(user)
+
     def read_books(self):
-        df = self.book_dal.read_books(filter_type=self.filter_type)
+        df = self.book_bll.read_books(filter_type=self.filter_type)
         self.books_model = TableModel(df)
         self.show_books_number()
 
@@ -77,6 +83,9 @@ class LibraryController:
         """Update the state of toolbar actions based on the selection"""
         has_selection = self.view.books_table.selectionModel().hasSelection()
         is_admin = self.selected_user and self.selected_user.role == "admin"
+        self.view.borrow_action.setEnabled(has_selection)
+        self.view.restore_action.setEnabled(has_selection)
+        self.view.reserve_action.setEnabled(has_selection)
         if is_admin:
             self.view.modify_action.setEnabled(has_selection)
             self.view.delete_action.setEnabled(has_selection)
@@ -119,9 +128,7 @@ class LibraryController:
         self.view.statusBar().showMessage(f"Nombre de livres : {length}")
 
     def perform_search(self, search_text):
-        df = self.database_manager.read_books(
-            filter_type="search", filter_text=search_text
-        )
+        df = self.book_bll.read_books(filter_type="search", filter_text=search_text)
         if df.empty:
             print("Pas de résultats")
             return
@@ -213,7 +220,7 @@ class LibraryController:
 
         to_delete = self.dialog_manager.delete_book(book)
         if to_delete:
-            self.book_dal.delete_book(book.id)
+            self.book_bll.delete_book(book.id)
         self.read_books()
         self.update_viewport_books()
 
@@ -223,7 +230,7 @@ class LibraryController:
         if response == QDialog.Accepted:
             data = dialog.get_data()
             username = data["nom"]
-            password = data["mot_passe"]
+            password = data["hash_mot_passe"]
             if (username == "admin") and (password == "admin"):
                 user = User(username, "admin", "actif", password, role="admin")
                 self.login_as_user(user)
@@ -235,7 +242,7 @@ class LibraryController:
                         self.view, "Utilisateur", "Utilisateur non trouvé"
                     )
                 else:
-                    user_password = user.iloc[0]["mot_passe"]
+                    user_password = user.iloc[0]["hash_mot_passe"]
                     if user_password != user_password:
                         QMessageBox.information(
                             self.view,
@@ -247,9 +254,9 @@ class LibraryController:
                         if status == "actif":
                             user = User(
                                 user.iloc[0]["nom"],
-                                user.iloc[0]["contact"],
+                                user.iloc[0]["email"],
                                 user.iloc[0]["statut"],
-                                user.iloc[0]["mot_passe"],
+                                user.iloc[0]["hash_mot_passe"],
                                 user.iloc[0]["id_utilisateurs"],
                                 user.iloc[0]["role"],
                             )
@@ -309,13 +316,13 @@ class LibraryController:
             return
         new_book = self.create_book(
             book_data["titre"],
-            book_data["auteur_id"],
+            book_data["auteur_ids"],
             book_data["genre_id"],
             book_data["date_publication"],
         )
         if new_book is None:
             return
-        self.book_dal.insert_book(new_book)
+        self.book_bll.insert_book(new_book)
         self.read_books()
         self.update_viewport_books()
 
@@ -332,17 +339,26 @@ class LibraryController:
             return
         existing_book = self.create_book(
             book_data["titre"],
-            book_data["auteur_id"],
+            book_data["auteur_ids"],
             book_data["genre_id"],
             book_data["date_publication"],
-            book_data["id"],
+            id=book_data["id"],
         )
-        self.book_dal.modify_book(existing_book)
+        self.book_bll.modify_book(existing_book)
         self.read_books()
         self.update_viewport_books()
 
     def borrow_book(self):
         """Borrow a book from the list"""
+        if self.selected_user is None or self.selected_user.role == "admin":
+            QMessageBox.information(
+                self.view,
+                "Utilisateur",
+                "Veuillez vous connecter en tant qu'utilisateur",
+            )
+            return
+
+        user_id = self.selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -350,17 +366,25 @@ class LibraryController:
         button = QMessageBox.question(
             self.view,
             "Emprunter ce livre",
-            f"Etes-vous sûr de vouloir emprunter ce livre {book}?",
+            f"Etes-vous sûr de vouloir emprunter ce livre {book.titre} ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            print("Emprunter le livre")
-            self.book_dal.borrow_book(book.id)
+            self.loan_bll.borrow_book(book.id, user_id)
             self.read_books()
             self.update_viewport_books()
 
-    def restore_books(self):
+    def restore_book(self):
+        """Restore books from the list"""
+        if self.selected_user is None:
+            QMessageBox.information(
+                self.view,
+                "Utilisateur",
+                "Veuillez vous connecter en tant qu'utilisateur",
+            )
+            return
+        user_id = self.selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -368,12 +392,14 @@ class LibraryController:
         button = QMessageBox.question(
             self.view,
             "Rendre ce livre",
-            f"Etes-vous sûr de vouloir rendre ce livre {book}?",
+            f"Etes-vous sûr de vouloir rendre ce livre {book.titre} ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            print("Livre rendu")
+            self.loan_bll.return_book(book.id, user_id)
+            self.read_books()
+            self.update_viewport_books()
 
     def reserve_book(self):
         book = self.get_selected_book()
@@ -401,7 +427,6 @@ class LibraryController:
             self.add_user()
 
     def modify_selected_item(self, name: str, index: int):
-        print(f"Modifier {name} {index}")
         if name == "books":
             self.modify_book()
         elif name == "genres":
@@ -443,22 +468,6 @@ class LibraryController:
         self.dialog_manager.modify_user(user)
         self.read_users()
         self.update_viewport_users()
-
-    def restore_book(self, index: int):
-        print(f"Restituer {index}")
-        book = self.get_selected_book()
-        if book is None:
-            return
-
-        button = QMessageBox.question(
-            self.view,
-            "Restituer ce livre",
-            f"Etes-vous sûr de vouloir restituer ce livre {book}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if button == QMessageBox.StandardButton.Yes:
-            print("Restituer le livre", book)
 
     def get_selected_indexes(self, custom_table_view: CustomTableView):
         """Get the selected indexes from the table"""
@@ -544,7 +553,7 @@ class LibraryController:
             column_names.append(column_name)
         return column_names
 
-    def get_column_index_by_name(model, column_name):
+    def get_column_index_by_name(self, model, column_name: str):
         for column in range(model.columnCount(0)):
             if (
                 model.headerData(
@@ -600,11 +609,33 @@ class LibraryController:
                 date_publication = self.books_model.data(
                     self.books_model.index(row, 4), role
                 )
-                auteur_id = self.books_model.data(self.books_model.index(row, 5), role)
-                genre_id = self.books_model.data(self.books_model.index(row, 6), role)
-                selected_book = self.create_book(
-                    titre, auteur_id, genre_id, date_publication, id
+                index = self.get_column_index_by_name(self.books_model, "ID auteurs")
+                auteur_ids = self.books_model.data(
+                    self.books_model.index(row, index), role
+                ).split(",")
+                auteur_ids = [int(auteur_id) for auteur_id in auteur_ids]
+                index = self.get_column_index_by_name(self.books_model, "ID genre")
+                genre_id = self.books_model.data(
+                    self.books_model.index(row, index), role
                 )
+                index = self.get_column_index_by_name(self.books_model, "Date emprunt")
+                date_emprunt = self.books_model.data(
+                    self.books_model.index(row, index), role
+                )
+                index = self.get_column_index_by_name(self.books_model, "Date retour")
+                date_retour = self.books_model.data(
+                    self.books_model.index(row, index), role
+                )
+                selected_book = self.create_book(
+                    titre,
+                    auteur_ids,
+                    genre_id,
+                    date_publication,
+                    id=int(id),
+                    date_emprunt=date_emprunt,
+                    date_retour=date_retour,
+                )
+                print(f"Selected book: {selected_book}")
                 break
 
         return selected_book
@@ -612,14 +643,19 @@ class LibraryController:
     def create_book(
         self,
         titre: str,
-        auteur_id: int,
+        auteur_ids: list[int],
         genre_id: int,
         date_publication: str,
+        date_emprunt: str = None,
+        date_retour: str = None,
         id: int = None,
     ) -> Book:
-        auteur = self.find_author(int(auteur_id))
+        auteurs = []
+        for auteur_id in auteur_ids:
+            auteur = self.find_author(int(auteur_id))
+            auteurs.append(auteur)
         genre = self.find_genre(int(genre_id))
-        return Book(titre, auteur, genre, date_publication, id)
+        return Book(titre, auteurs, genre, date_publication, id=id)
 
     def save_regles_prets_clicked(self):
         duree = self.view.duree_maximale_emprunt_input.text().strip()
