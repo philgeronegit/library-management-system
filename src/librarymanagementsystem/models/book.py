@@ -9,30 +9,35 @@ class Book:
     def __init__(
         self,
         titre: str,
-        auteur: Author,
+        auteurs: list[Author],
         genre: Genre,
         date_publication: datetime,
+        date_emprunt: datetime = None,
+        date_retour: datetime = None,
         id: int = None,
     ):
         self.id = id or int(uuid.uuid4())
         self.titre = titre
-        self.auteur = auteur
+        self.auteurs = auteurs
         self.genre = genre
         self.date_publication = date_publication
+        self.date_emprunt = date_emprunt
+        self.date_retour = date_retour
 
     def __str__(self):
-        return f"{self.titre} by {self.auteur.fullname} ({self.date_publication}) [{self.genre.name}]"
+        auteur_ids = [str(a.id) for a in self.auteurs]
+        return f"{self.titre} by {auteur_ids} ({self.date_publication}) [{self.genre.name}] ; Date emprunt: {self.date_emprunt} ; Date retour: {self.date_retour}"
 
     @staticmethod
     def headers() -> list[str]:
-        return [" Id ", " Titre ", " Auteur ", " Genre ", " Date publication "]
+        return [" Id ", " Titre ", " Auteurs ", " Genre ", " Date publication "]
 
     def to_list(self) -> list:
         # Returns a list of the book's attributes
         return [
             self.id,
             self.titre,
-            self.auteur.fullname,
+            self.auteurs[0].fullname,
             self.genre.name,
             self.date_publication,
         ]

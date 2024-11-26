@@ -1,6 +1,7 @@
 import qtawesome as qta
 from dateutil.parser import parse
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -11,17 +12,21 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from librarymanagementsystem.models.author import Author
 from librarymanagementsystem.models.book import Book
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.views.utils import input_factory
 
 
 class BookDialog(QDialog):
-    def __init__(self):
+    def __init__(self, authors: TableModel, genres: TableModel):
         super().__init__()
         self.setWindowTitle("Ajouter livre")
         self.setFixedSize(400, 400)
         self.setWindowIcon(qta.icon("fa5s.book"))
+
+        self.authors = authors
+        self.genres = genres
 
         self.book = None
 
@@ -34,8 +39,19 @@ class BookDialog(QDialog):
         self.form_layout.addRow(label, self.titre_input)
 
         label = QLabel("Auteur :")
-        self.auteur_combo_box = QComboBox()
-        self.form_layout.addRow(label, self.auteur_combo_box)
+        self.author_combo_box = QComboBox()
+        self.authors_layout = QVBoxLayout()
+        authors_layout_toolbar = QHBoxLayout()
+
+        # Add a + icon button using qt_awesome to add another phone number
+        add_author_button = QPushButton()
+        add_author_button.setIcon(qta.icon("fa5s.plus"))
+        add_author_button.clicked.connect(lambda: self.add_author_combobox())
+
+        authors_layout_toolbar.addWidget(self.author_combo_box)
+        authors_layout_toolbar.addWidget(add_author_button)
+        self.authors_layout.addLayout(authors_layout_toolbar)
+        self.form_layout.addRow(label, self.authors_layout)
 
         label = QLabel("Genre :")
         self.genre_combo_box = QComboBox()
@@ -59,16 +75,94 @@ class BookDialog(QDialog):
         # Connect textChanged signals to the validation method
         self.date_publication_input.textChanged.connect(self.validate_inputs)
 
+        self.author_comboboxes = [self.author_combo_box]
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            if self.add_button.isEnabled():
+                self.accept()
+            else:
+                event.ignore()
+        else:
+            super().keyPressEvent(event)
+
+    def del_author_combobox(self, author_id: int, layout: QVBoxLayout):
+        # Delete a phone input field
+        for author_combobox in self.author_comboboxes:
+            if author_combobox.currentData() == author_id:
+                self.author_comboboxes.remove(author_combobox)
+                break
+
+        # Remove and delete each widget in the layout
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Finally, delete the layout itself
+        layout.deleteLater()
+
+        # Update the layout to reflect the changes
+        self.authors_layout.update()
+        self.authors_layout.parentWidget().updateGeometry()
+
+    def add_author_combobox(self, author: Author = None):
+        # Add a new author combobox
+        author_combo_box = QComboBox()
+        self.populate_combobox(
+            author_combo_box,
+            None,
+            self.authors,
+            self.get_author_from_model,
+        )
+
+        authors_layout_toolbar = QHBoxLayout()
+
+        # Add a + icon button using qt_awesome to add another phone number
+        add_author_button = QPushButton()
+        add_author_button.setIcon(qta.icon("fa5s.plus"))
+        add_author_button.clicked.connect(lambda: self.add_author_combobox())
+
+        del_author_button = QPushButton()
+        del_author_button.setIcon(qta.icon("fa5s.minus"))
+        # Add the author id to know which one to delete
+        del_author_button.clicked.connect(
+            lambda: self.del_author_combobox(
+                author_combo_box.currentData(), authors_layout_toolbar
+            )
+        )
+
+        authors_layout_toolbar.addWidget(author_combo_box)
+        authors_layout_toolbar.addWidget(add_author_button)
+        authors_layout_toolbar.addWidget(del_author_button)
+
+        self.authors_layout.addLayout(authors_layout_toolbar)
+
+        # Ensure the layout and the parent widget update correctly
+        self.authors_layout.invalidate()  # Recalculate layout
+        self.authors_layout.parentWidget().adjustSize()  # Resize the dialog to fit the new content
+
+        # Update the geometry of the parent widget if necessary
+        self.authors_layout.parentWidget().updateGeometry()
+
+        self.author_comboboxes.append(author_combo_box)
+
     def get_data(self) -> dict:
-        return {
+        authord_ids = []
+        for author_combobox in self.author_comboboxes:
+            # check if not already added
+            if author_combobox.currentData() not in authord_ids:
+                authord_ids.append(int(author_combobox.currentData()))
+        data = {
             "id": self.book.id if self.book is not None else None,
             "titre": self.titre_input.text().strip(),
-            "auteur": self.auteur_combo_box.currentText().strip(),
-            "auteur_id": self.auteur_combo_box.currentData(),
+            "auteur_ids": authord_ids,
             "genre": self.genre_combo_box.currentText().strip(),
             "genre_id": self.genre_combo_box.currentData(),
             "date_publication": self.date_publication_input.text().strip(),
         }
+        return data
 
     def is_valid_date(self, date_string: str) -> bool:
         try:
@@ -80,7 +174,7 @@ class BookDialog(QDialog):
     def validate_inputs(self) -> None:
         # Validates the inputs and enables the Add button
         titre = self.titre_input.text().strip()
-        auteur = self.auteur_combo_box.currentText().strip()
+        auteur = self.author_combo_box.currentText().strip()
         genre = self.genre_combo_box.currentText().strip()
         date_publication = self.date_publication_input.text().strip()
 
@@ -95,28 +189,31 @@ class BookDialog(QDialog):
     def get_property_or_none(self, instance, property) -> str | None:
         return getattr(instance, property) if instance is not None else None
 
-    def populate_fields(self, book: Book, authors: TableModel, genres: TableModel):
+    def populate_fields(self, book: Book):
         if book is not None:
             self.book = book
             self.titre_input.setText(book.titre)
             self.date_publication_input.setText(book.date_publication)
 
         author_fullname = None
-        if book is not None:
-            author_fullname = book.auteur.fullname
+        if book is not None and len(book.auteurs) > 0:
+            author_fullname = book.auteurs[0].fullname
         genre = None
         if book is not None:
             genre = book.genre.name
         self.populate_combobox(
-            self.auteur_combo_box,
+            self.author_combo_box,
             author_fullname,
-            authors,
+            self.authors,
             self.get_author_from_model,
         )
+        if book is not None and len(book.auteurs) > 1:
+            for author in book.auteurs[1:]:
+                self.add_author_combobox(author)
         self.populate_combobox(
             self.genre_combo_box,
             genre,
-            genres,
+            self.genres,
             self.get_genre_from_model,
         )
         self.validate_inputs()
