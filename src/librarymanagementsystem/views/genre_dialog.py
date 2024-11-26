@@ -1,4 +1,5 @@
 import qtawesome as qta
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
 from librarymanagementsystem.models.genre import Genre
@@ -30,6 +31,15 @@ class GenreDialog(QDialog):
 
         self.layout.addLayout(self.button_layout)
         self.setLayout(self.layout)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            if self.add_button.isEnabled():
+                self.accept()
+            else:
+                event.ignore()
+        else:
+            super().keyPressEvent(event)
 
     def get_data(self) -> dict:
         return {
