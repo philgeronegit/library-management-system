@@ -43,3 +43,14 @@ class Database:
                 )
         except Exception as e:
             print("Erreur lors de l'exécution de la requête {}".format(e))
+
+    def exec_queries_with_commit(self, queries: list[str]):
+        try:
+            engine = self.getEngine()
+            with engine.connect() as conn:
+                for query in queries:
+                    conn.execute(sqlalchemy.text(query))
+                conn.commit()
+                print("Enregistrement modifié avec succès dans la table")
+        except Exception as e:
+            print("Erreur lors de l'exécution de la requête {}".format(e))
