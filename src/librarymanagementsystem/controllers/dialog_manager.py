@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
+from librarymanagementsystem.bo.author import Author
+from librarymanagementsystem.bo.book import Book
+from librarymanagementsystem.bo.genre import Genre
+from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
-from librarymanagementsystem.models.author import Author
-from librarymanagementsystem.models.book import Book
-from librarymanagementsystem.models.genre import Genre
-from librarymanagementsystem.models.user import User
 from librarymanagementsystem.views.author_dialog import AuthorDialog
 from librarymanagementsystem.views.book_dialog import BookDialog
 from librarymanagementsystem.views.genre_dialog import GenreDialog
@@ -67,7 +67,7 @@ class DialogManager:
         button = QMessageBox.question(
             self.view,
             "Supprimer livre",
-            f"Etes-vous sûr de vouloir supprimer le livre {book.titre} ?",
+            f"Etes-vous sûr de vouloir supprimer le livre {book.title} ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if button == QMessageBox.StandardButton.Yes:

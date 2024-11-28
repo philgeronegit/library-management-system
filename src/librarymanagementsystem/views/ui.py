@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from librarymanagementsystem.models.user import User
+from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.views.components.clearable_line_edit import (
     ClearableLineEdit,
 )
@@ -39,10 +39,9 @@ class LibraryView(QMainWindow):
         self.controller = controller
         self.create_ui()
 
-        # Set minimum width and make the window resizable
         self.setMinimumWidth(1024)
-        self.setMinimumHeight(768)  # Optional: Set a minimum height if needed
-        self.resize(1024, 768)  # Set the initial size
+        self.setMinimumHeight(768)
+        self.resize(1200, 800)
 
         # Center the window on the screen
         self.center()
