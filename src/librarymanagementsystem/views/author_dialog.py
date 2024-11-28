@@ -2,7 +2,7 @@ import qtawesome as qta
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
-from librarymanagementsystem.models.author import Author
+from librarymanagementsystem.bo.author import Author
 from librarymanagementsystem.views.utils import input_factory
 
 
@@ -70,5 +70,7 @@ class AuthorDialog(QDialog):
         self.firstname_input.setText(author.firstname)
         self.lastname_input.setText(author.lastname)
         self.validate_inputs()
-        self.setWindowTitle("Modifier auteur")
-        self.add_button.setText("Modifier")
+
+        if author is not None:
+            self.setWindowTitle("Modifier auteur")
+            self.add_button.setText("Modifier")

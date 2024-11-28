@@ -2,7 +2,7 @@ import qtawesome as qta
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
-from librarymanagementsystem.models.genre import Genre
+from librarymanagementsystem.bo.genre import Genre
 from librarymanagementsystem.views.utils import input_factory
 
 
@@ -61,5 +61,7 @@ class GenreDialog(QDialog):
         self.genre = genre
         self.name_input.setText(genre.name)
         self.validate_inputs()
-        self.setWindowTitle("Modifier genre")
-        self.add_button.setText("Modifier")
+
+        if genre is not None:
+            self.setWindowTitle("Modifier genre")
+            self.add_button.setText("Modifier")
