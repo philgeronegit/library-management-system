@@ -12,6 +12,7 @@ class CustomTableView(QTableView):
         self.create_ui()
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
+        self.doubleClicked.connect(self.on_double_click)
 
     def create_ui(self):
         self.menu = QMenu()
@@ -56,5 +57,12 @@ class CustomTableView(QTableView):
         self.controller.delete_selected_item(self.name, index)
 
     def modify_clicked(self, index):
+        index = self.get_index_data(index)
+        self.controller.modify_selected_item(self.name, index)
+
+    def on_double_click(self, index):
+        if not index.isValid():
+            return
+
         index = self.get_index_data(index)
         self.controller.modify_selected_item(self.name, index)

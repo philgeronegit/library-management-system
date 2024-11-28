@@ -1,5 +1,5 @@
+from librarymanagementsystem.bo.genre import Genre
 from librarymanagementsystem.controllers.database import Database
-from librarymanagementsystem.models.genre import Genre
 
 
 class GenreDAL:

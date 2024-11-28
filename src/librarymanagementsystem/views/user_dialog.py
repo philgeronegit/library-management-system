@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from librarymanagementsystem.models.user import User
+from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.views.utils import input_factory
 
 
@@ -28,6 +28,10 @@ class UserDialog(QDialog):
         self.form_layout.addRow(label, self.name_input)
 
         label, self.email_input = input_factory("Email :")
+        self.form_layout.addRow(label, self.email_input)
+
+        label, self.birth_date_input = input_factory("Date naissance :")
+        self.birth_date_input.setInputMask("0000-00-00")
         self.form_layout.addRow(label, self.email_input)
 
         label, self.status_input = input_factory("Statut :")
@@ -77,5 +81,7 @@ class UserDialog(QDialog):
         self.status_input.setText(user.status)
         self.password_input.setText(user.password)
         self.validate_inputs()
-        self.setWindowTitle("Modifier utilisateur")
-        self.add_button.setText("Modifier")
+
+        if user is not None:
+            self.setWindowTitle("Modifier utilisateur")
+            self.add_button.setText("Modifier")

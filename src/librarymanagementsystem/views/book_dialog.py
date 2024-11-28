@@ -12,8 +12,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from librarymanagementsystem.models.author import Author
-from librarymanagementsystem.models.book import Book
+from librarymanagementsystem.bo.author import Author
+from librarymanagementsystem.bo.book import Book
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.views.utils import input_factory
 
@@ -35,10 +35,10 @@ class BookDialog(QDialog):
         self.form_layout = QFormLayout()
         self.layout.addLayout(self.form_layout)
 
-        label, self.titre_input = input_factory("Titre :")
-        self.form_layout.addRow(label, self.titre_input)
+        label, self.title_input = input_factory("Titre :")
+        self.form_layout.addRow(label, self.title_input)
 
-        label = QLabel("Auteur :")
+        label = QLabel("Auteurs :")
         self.author_combo_box = QComboBox()
         self.authors_layout = QVBoxLayout()
         authors_layout_toolbar = QHBoxLayout()
@@ -57,8 +57,33 @@ class BookDialog(QDialog):
         self.genre_combo_box = QComboBox()
         self.form_layout.addRow(label, self.genre_combo_box)
 
-        label, self.date_publication_input = input_factory("Date publication :")
-        self.form_layout.addRow(label, self.date_publication_input)
+        label, self.publication_date_input = input_factory("Date publication :")
+        self.publication_date_input.setInputMask("0000-00-00")
+        self.form_layout.addRow(label, self.publication_date_input)
+
+        label, self.creation_date_input = input_factory("Date création :")
+        self.creation_date_input.setEnabled(False)
+        self.form_layout.addRow(label, self.creation_date_input)
+
+        label, self.creation_by_input = input_factory("Créé par :")
+        self.creation_by_input.setEnabled(False)
+        self.form_layout.addRow(label, self.creation_by_input)
+
+        label, self.modification_date_input = input_factory("Date modification :")
+        self.modification_date_input.setEnabled(False)
+        self.form_layout.addRow(label, self.modification_date_input)
+
+        label, self.modification_by_input = input_factory("Modifié par :")
+        self.modification_by_input.setEnabled(False)
+        self.form_layout.addRow(label, self.modification_by_input)
+
+        label, self.deletion_date_input = input_factory("Date suppression :")
+        self.deletion_date_input.setEnabled(False)
+        self.form_layout.addRow(label, self.deletion_date_input)
+
+        label, self.deletion_by_input = input_factory("Supprimé par :")
+        self.deletion_by_input.setEnabled(False)
+        self.form_layout.addRow(label, self.deletion_by_input)
 
         self.button_layout = QHBoxLayout()
         self.cancel_button = QPushButton("Annuler")
@@ -73,7 +98,7 @@ class BookDialog(QDialog):
         self.setLayout(self.layout)
 
         # Connect textChanged signals to the validation method
-        self.date_publication_input.textChanged.connect(self.validate_inputs)
+        self.publication_date_input.textChanged.connect(self.validate_inputs)
 
         self.author_comboboxes = [self.author_combo_box]
 
@@ -156,11 +181,11 @@ class BookDialog(QDialog):
                 authord_ids.append(int(author_combobox.currentData()))
         data = {
             "id": self.book.id if self.book is not None else None,
-            "titre": self.titre_input.text().strip(),
-            "auteur_ids": authord_ids,
+            "title": self.title_input.text().strip(),
+            "author_ids": authord_ids,
             "genre": self.genre_combo_box.currentText().strip(),
             "genre_id": self.genre_combo_box.currentData(),
-            "date_publication": self.date_publication_input.text().strip(),
+            "publication_date": self.publication_date_input.text().strip(),
         }
         return data
 
@@ -173,10 +198,10 @@ class BookDialog(QDialog):
 
     def validate_inputs(self) -> None:
         # Validates the inputs and enables the Add button
-        titre = self.titre_input.text().strip()
+        titre = self.title_input.text().strip()
         auteur = self.author_combo_box.currentText().strip()
         genre = self.genre_combo_box.currentText().strip()
-        date_publication = self.date_publication_input.text().strip()
+        date_publication = self.publication_date_input.text().strip()
 
         date_valid = self.is_valid_date(date_publication)
 
@@ -192,12 +217,21 @@ class BookDialog(QDialog):
     def populate_fields(self, book: Book):
         if book is not None:
             self.book = book
-            self.titre_input.setText(book.titre)
-            self.date_publication_input.setText(book.date_publication)
+            self.title_input.setText(book.title)
+            self.publication_date_input.setText(book.publication_date)
+            self.creation_date_input.setText(book.creation_date)
+            if book.added_by is not None:
+                self.creation_by_input.setText(book.added_by.username)
+            self.modification_date_input.setText(book.modification_date)
+            self.deletion_date_input.setText(book.deletion_date)
+            if book.modified_by is not None:
+                self.modification_by_input.setText(book.modified_by.username)
+            if book.deleted_by is not None:
+                self.deletion_by_input.setText(book.deleted_by.username)
 
         author_fullname = None
-        if book is not None and len(book.auteurs) > 0:
-            author_fullname = book.auteurs[0].fullname
+        if book is not None and len(book.authors) > 0:
+            author_fullname = book.authors[0].fullname
         genre = None
         if book is not None:
             genre = book.genre.name
@@ -207,8 +241,8 @@ class BookDialog(QDialog):
             self.authors,
             self.get_author_from_model,
         )
-        if book is not None and len(book.auteurs) > 1:
-            for author in book.auteurs[1:]:
+        if book is not None and len(book.authors) > 1:
+            for author in book.authors[1:]:
                 self.add_author_combobox(author)
         self.populate_combobox(
             self.genre_combo_box,
@@ -218,8 +252,9 @@ class BookDialog(QDialog):
         )
         self.validate_inputs()
 
-        self.setWindowTitle("Modifier livre")
-        self.add_button.setText("Modifier")
+        if book is not None:
+            self.setWindowTitle("Modifier livre")
+            self.add_button.setText("Modifier")
 
     def populate_combobox(
         self, combo_box: QComboBox, text: str, model: TableModel, fn: callable = None
