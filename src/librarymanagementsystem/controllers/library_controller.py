@@ -8,8 +8,8 @@ from librarymanagementsystem.bll.loan_bll import LoanBLL
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
-from librarymanagementsystem.controllers.genre_dal import GenreDAL
 from librarymanagementsystem.controllers.ui_manager import UIManager
+from librarymanagementsystem.dal.genre_dal import GenreDAL
 from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.entities.genre import Genre
