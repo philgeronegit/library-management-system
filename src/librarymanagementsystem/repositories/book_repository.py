@@ -4,7 +4,7 @@ from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.entities.book import Book
 
 
-class BookDAL:
+class BookRepository:
     def __init__(self, database: Database):
         self.database = database
 

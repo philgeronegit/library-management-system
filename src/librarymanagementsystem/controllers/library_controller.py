@@ -9,12 +9,12 @@ from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
 from librarymanagementsystem.controllers.ui_manager import UIManager
-from librarymanagementsystem.dal.genre_dal import GenreDAL
 from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.entities.genre import Genre
 from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.models.table_model import TableModel
+from librarymanagementsystem.repositories.genre_repository import GenreRepository
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
 from librarymanagementsystem.views.login_dialog import LoginDialog
 from librarymanagementsystem.views.ui import LibraryView
@@ -31,7 +31,7 @@ class LibraryController:
         self.genres_model = None
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
-        self.genre_dal = GenreDAL(self.database)
+        self.genre_repository = GenreRepository(self.database)
         self.book_bll = BookBLL(self.database)
         self.loan_bll = LoanBLL(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
@@ -58,7 +58,7 @@ class LibraryController:
         self.authors_model = TableModel(df)
 
     def read_genres(self):
-        df = self.genre_dal.read_genres()
+        df = self.genre_repository.read_genres()
         self.genres_model = TableModel(df)
 
     def read_borrow_rules(self):
@@ -190,7 +190,7 @@ class LibraryController:
         to_delete = self.dialog_manager.delete_genre(genre)
         if not to_delete:
             return
-        self.genre_dal.delete_genre(genre.id)
+        self.genre_repository.delete_genre(genre.id)
         self.read_genres()
         self.update_viewport_genres()
 
@@ -295,7 +295,7 @@ class LibraryController:
         new_genre = self.dialog_manager.add_genre()
         if new_genre is None:
             return
-        self.genre_dal.insert_genre(new_genre)
+        self.genre_repository.insert_genre(new_genre)
         self.read_genres()
         self.update_viewport_genres()
 
@@ -450,7 +450,7 @@ class LibraryController:
         existing_genre = self.dialog_manager.modify_genre(genre)
         if existing_genre is None:
             return
-        self.genre_dal.modify_genre(existing_genre)
+        self.genre_repository.modify_genre(existing_genre)
         self.read_genres()
         self.update_viewport_genres()
 

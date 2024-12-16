@@ -2,7 +2,7 @@ from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.entities.genre import Genre
 
 
-class GenreDAL:
+class GenreRepository:
     def __init__(self, database: Database):
         self.database = database
 
