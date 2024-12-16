@@ -2,7 +2,7 @@ from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.repositories.book_repository import BookRepository
 
 
-class BookBLL:
+class BookManager:
     def __init__(self, database: Database):
         self.database = database
         self.book_repository = BookRepository(self.database)

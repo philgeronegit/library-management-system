@@ -3,8 +3,6 @@ import datetime
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
-from librarymanagementsystem.bll.book_bll import BookBLL
-from librarymanagementsystem.bll.loan_bll import LoanBLL
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
@@ -13,6 +11,8 @@ from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.entities.genre import Genre
 from librarymanagementsystem.entities.user import User
+from librarymanagementsystem.managers.book_manager import BookManager
+from librarymanagementsystem.managers.loan_manager import LoanManager
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.repositories.genre_repository import GenreRepository
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
@@ -32,8 +32,8 @@ class LibraryController:
         self.database = Database()
         self.database_manager = DatabaseManager(self.database)
         self.genre_repository = GenreRepository(self.database)
-        self.book_bll = BookBLL(self.database)
-        self.loan_bll = LoanBLL(self.database)
+        self.book_manager = BookManager(self.database)
+        self.loan_manager = LoanManager(self.database)
         self.dialog_manager = DialogManager(self.view, self.database_manager)
         self.ui_manager = UIManager(self.view)
         self.selected_user = None
@@ -45,7 +45,7 @@ class LibraryController:
         self.login_as_user(user)
 
     def read_books(self):
-        df = self.book_bll.read_books(filter_type=self.filter_type)
+        df = self.book_manager.read_books(filter_type=self.filter_type)
         self.books_model = TableModel(df)
         self.show_books_number()
 
@@ -130,7 +130,7 @@ class LibraryController:
         self.view.statusBar().showMessage(f"Nombre de livres : {length}")
 
     def perform_search(self, search_text):
-        df = self.book_bll.read_books(filter_type="search", filter_text=search_text)
+        df = self.book_manager.read_books(filter_type="search", filter_text=search_text)
         if df.empty:
             print("Pas de résultats")
             return
@@ -222,7 +222,7 @@ class LibraryController:
 
         to_delete = self.dialog_manager.delete_book(book)
         if to_delete:
-            self.book_bll.delete_book(book.id, self.selected_user.id)
+            self.book_manager.delete_book(book.id, self.selected_user.id)
         self.read_books()
         self.update_viewport_books()
 
@@ -326,7 +326,7 @@ class LibraryController:
         if new_book is None:
             return
 
-        self.book_bll.insert_book(new_book, self.selected_user.id)
+        self.book_manager.insert_book(new_book, self.selected_user.id)
         self.read_books()
         self.update_viewport_books()
 
@@ -349,7 +349,7 @@ class LibraryController:
             book_data["publication_date"],
             id=book_data["id"],
         )
-        self.book_bll.modify_book(existing_book, self.selected_user.id)
+        self.book_manager.modify_book(existing_book, self.selected_user.id)
         self.read_books()
         self.update_viewport_books()
 
@@ -376,7 +376,7 @@ class LibraryController:
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            self.loan_bll.borrow_book(book.id, user_id)
+            self.loan_manager.borrow_book(book.id, user_id)
             self.read_books()
             self.update_viewport_books()
 
@@ -402,7 +402,7 @@ class LibraryController:
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            self.loan_bll.return_book(book.id, user_id)
+            self.loan_manager.return_book(book.id, user_id)
             self.read_books()
             self.update_viewport_books()
 
