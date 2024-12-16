@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from librarymanagementsystem.bo.user import User
+from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.components.clearable_line_edit import (
     ClearableLineEdit,
 )

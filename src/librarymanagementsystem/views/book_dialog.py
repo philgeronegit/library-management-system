@@ -12,8 +12,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from librarymanagementsystem.bo.author import Author
-from librarymanagementsystem.bo.book import Book
+from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.views.utils import input_factory
 

@@ -5,15 +5,15 @@ from PyQt6.QtWidgets import QDialog, QMessageBox
 
 from librarymanagementsystem.bll.book_bll import BookBLL
 from librarymanagementsystem.bll.loan_bll import LoanBLL
-from librarymanagementsystem.bo.author import Author
-from librarymanagementsystem.bo.book import Book
-from librarymanagementsystem.bo.genre import Genre
-from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.controllers.database import Database
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
 from librarymanagementsystem.controllers.dialog_manager import DialogManager
 from librarymanagementsystem.controllers.genre_dal import GenreDAL
 from librarymanagementsystem.controllers.ui_manager import UIManager
+from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.entities.book import Book
+from librarymanagementsystem.entities.genre import Genre
+from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.models.table_model import TableModel
 from librarymanagementsystem.views.components.custom_table_view import CustomTableView
 from librarymanagementsystem.views.login_dialog import LoginDialog

@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
-from librarymanagementsystem.bo.author import Author
-from librarymanagementsystem.bo.book import Book
-from librarymanagementsystem.bo.genre import Genre
-from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.controllers.database_manager import DatabaseManager
+from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.entities.book import Book
+from librarymanagementsystem.entities.genre import Genre
+from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.author_dialog import AuthorDialog
 from librarymanagementsystem.views.book_dialog import BookDialog
 from librarymanagementsystem.views.genre_dialog import GenreDialog

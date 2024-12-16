@@ -2,7 +2,7 @@ import qtawesome as qta
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
-from librarymanagementsystem.bo.author import Author
+from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.views.utils import input_factory
 
 

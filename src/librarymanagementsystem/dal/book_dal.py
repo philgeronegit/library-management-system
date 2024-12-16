@@ -1,7 +1,7 @@
 import sqlalchemy
 
-from librarymanagementsystem.bo.book import Book
 from librarymanagementsystem.controllers.database import Database
+from librarymanagementsystem.entities.book import Book
 
 
 class BookDAL:

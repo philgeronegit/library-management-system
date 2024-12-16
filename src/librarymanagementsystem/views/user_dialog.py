@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from librarymanagementsystem.bo.user import User
+from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.utils import input_factory
 
 

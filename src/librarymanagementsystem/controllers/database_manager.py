@@ -1,6 +1,6 @@
-from librarymanagementsystem.bo.author import Author
-from librarymanagementsystem.bo.user import User
 from librarymanagementsystem.controllers.database import Database
+from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.entities.user import User
 
 
 class DatabaseManager:
