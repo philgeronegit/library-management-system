@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 
 from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
-from librarymanagementsystem.models.table_model import TableModel
+from librarymanagementsystem.views.table_model import TableModel
 from librarymanagementsystem.views.utils import input_factory
 
 

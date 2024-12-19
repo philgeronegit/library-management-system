@@ -23,20 +23,23 @@ from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.components.clearable_line_edit import (
     ClearableLineEdit,
 )
-from librarymanagementsystem.views.components.custom_table_view import CustomTableView
+from librarymanagementsystem.views.components.custom_table_view import (
+    CustomTableView,
+    CustomTableViewBook,
+)
 from librarymanagementsystem.views.constants import LIGHT_GREEN_COLOR
 from librarymanagementsystem.views.utils import input_factory
 
 
 class LibraryView(QMainWindow):
-    def __init__(self, controller=None):
+    def __init__(self, library_app=None):
         super().__init__()
         icon = qta.icon("fa5s.book")
         self.setWindowIcon(icon)
         self.setWindowTitle("Librairie")
 
         self.is_ready = False
-        self.controller = controller
+        self.library_app = library_app
         self.create_ui()
 
         self.setMinimumWidth(1024)
@@ -109,9 +112,6 @@ class LibraryView(QMainWindow):
         label, self.penalite_retard_input = input_factory("Pénalité de retard :")
         form_layout.addRow(label, self.penalite_retard_input)
         self.save_regles_prets_button = QPushButton("Sauver")
-        self.save_regles_prets_button.clicked.connect(
-            self.controller.save_regles_prets_clicked
-        )
         self.regles_prets_tab_layout.addWidget(self.save_regles_prets_button)
 
         regles_prets_tab.setLayout(self.regles_prets_tab_layout)
@@ -135,33 +135,41 @@ class LibraryView(QMainWindow):
         self.borrowed_books_radio = QRadioButton("Livres empruntés")
         self.borrowed_books_radio.setProperty("type", "borrowed")
         self.borrowed_books_radio.toggled.connect(self.handle_radio_button_toggled)
+        self.deleted_books_radio = QRadioButton("Livres supprimés")
+        self.deleted_books_radio.setProperty("type", "deleted")
+        self.deleted_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.late_books_radio = QRadioButton("Retours en retard")
         self.late_books_radio.setProperty("type", "late")
         self.late_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.user_combo_box = QComboBox()
         self.user_combo_box.addItem("Tous")
-        self.user_combo_box.addItem("Admin")
         self.is_ready = True
 
         self.filter_layout.addWidget(self.all_books_radio)
         self.filter_layout.addWidget(self.available_books_radio)
         self.filter_layout.addWidget(self.borrowed_books_radio)
+        self.filter_layout.addWidget(self.deleted_books_radio)
         self.filter_layout.addWidget(self.late_books_radio)
         label = QLabel("Utilisateurs")
         self.filter_layout.addWidget(label)
         self.filter_layout.addWidget(self.user_combo_box)
         self.livres_tab_layout.addLayout(self.filter_layout)
 
-        self.books_table = CustomTableView("books", self.controller)
+        self.table_views = []
+        self.books_table = CustomTableViewBook("books", self.library_app)
+        self.table_views.append(self.books_table)
         self.livres_tab_layout.addWidget(self.books_table)
 
-        self.users_table = CustomTableView("users", self.controller)
+        self.users_table = CustomTableView("users", self.library_app)
+        self.table_views.append(self.users_table)
         self.utilisateurs_tab_layout.addWidget(self.users_table)
 
-        self.authors_table = CustomTableView("authors", self.controller)
+        self.authors_table = CustomTableView("authors", self.library_app)
+        self.table_views.append(self.authors_table)
         self.auteurs_tab_layout.addWidget(self.authors_table)
 
-        self.genres_table = CustomTableView("genres", self.controller)
+        self.genres_table = CustomTableView("genres", self.library_app)
+        self.table_views.append(self.genres_table)
         self.genres_tab_layout.addWidget(self.genres_table)
 
         self.setCentralWidget(self.centralWidget)
@@ -181,22 +189,36 @@ class LibraryView(QMainWindow):
             return
 
         rbtn = self.sender()
-        self.controller.filter_change(rbtn.property("type"))
+        self.library_app.book_controller.filter_change(rbtn.property("type"))
 
     def closeEvent(self, event):
         event.accept()
         sys.exit()
 
     def login(self):
-        self.controller.login()
+        self.library_app.login()
 
     def logout(self):
-        self.controller.logout()
+        self.library_app.login_controller.logout()
+        self.library_app.book_controller.set_selected_user(None)
 
     def update_user_actions(self, user: User = None):
         if user is None:
             self.login_action.setEnabled(True)
             self.logout_action.setEnabled(False)
+            self.add_action.setEnabled(False)
+            self.modify_action.setEnabled(False)
+            self.delete_action.setEnabled(False)
+            self.borrow_action.setEnabled(False)
+            self.restore_action.setEnabled(False)
+            self.reserve_action.setEnabled(False)
+            for table in self.table_views:
+                table.add_action.setEnabled(False)
+                table.modify_action.setEnabled(False)
+                table.delete_action.setEnabled(False)
+                if table.name == "books":
+                    table.borrow_action.setEnabled(False)
+                    table.restore_action.setEnabled(False)
             return
 
         self.login_action.setEnabled(False)
@@ -209,9 +231,10 @@ class LibraryView(QMainWindow):
             self.borrow_action.setEnabled(False)
             self.restore_action.setEnabled(False)
             self.reserve_action.setEnabled(False)
-            self.books_table.add_action.setEnabled(True)
-            self.books_table.modify_action.setEnabled(True)
-            self.books_table.delete_action.setEnabled(True)
+            for table in self.table_views:
+                table.add_action.setEnabled(True)
+                table.modify_action.setEnabled(True)
+                table.delete_action.setEnabled(True)
         else:
             self.add_action.setEnabled(False)
             self.modify_action.setEnabled(False)
@@ -219,9 +242,10 @@ class LibraryView(QMainWindow):
             self.borrow_action.setEnabled(True)
             self.restore_action.setEnabled(True)
             self.reserve_action.setEnabled(True)
-            self.books_table.add_action.setEnabled(False)
-            self.books_table.modify_action.setEnabled(False)
-            self.books_table.delete_action.setEnabled(False)
+            for table in self.table_views:
+                table.add_action.setEnabled(False)
+                table.modify_action.setEnabled(False)
+                table.delete_action.setEnabled(False)
 
     def create_toolbar(self):
         toolbar = QToolBar("Main Toolbar")
@@ -254,14 +278,29 @@ class LibraryView(QMainWindow):
         self.reserve_action.setEnabled(False)
         toolbar.addAction(self.reserve_action)
 
-        self.add_action.triggered.connect(self.controller.add_book)
-        self.modify_action.triggered.connect(self.controller.modify_book)
-        self.delete_action.triggered.connect(self.controller.delete_book)
-        self.borrow_action.triggered.connect(self.controller.borrow_book)
-        self.restore_action.triggered.connect(self.controller.restore_book)
-        self.reserve_action.triggered.connect(self.controller.reserve_book)
-
         self.setStatusBar(QStatusBar(self))
+
+    def connect_signals(self):
+        self.add_action.triggered.connect(self.library_app.book_controller.add)
+        self.modify_action.triggered.connect(self.library_app.book_controller.modify)
+        self.delete_action.triggered.connect(self.library_app.book_controller.delete)
+        self.borrow_action.triggered.connect(
+            self.library_app.book_controller.borrow_book
+        )
+        self.restore_action.triggered.connect(
+            self.library_app.book_controller.restore_book
+        )
+        self.reserve_action.triggered.connect(
+            self.library_app.book_controller.reserve_book
+        )
+        self.save_regles_prets_button.clicked.connect(
+            self.library_app.borrow_rules_controller.save_regles_prets_clicked
+        )
+        self.user_combo_box.currentIndexChanged.connect(
+            self.library_app.book_controller.user_combo_box_changed
+        )
+        for table in self.table_views:
+            table.connect_signals()
 
     #############################
     # Debounce search functions #
@@ -274,4 +313,4 @@ class LibraryView(QMainWindow):
         """Perform a search when the timer times out"""
         search_text = self.search_input.text().strip()
         print(f"Searching for: {search_text}")
-        self.controller.perform_search(search_text)
+        self.library_app.book_controller.perform_search(search_text)

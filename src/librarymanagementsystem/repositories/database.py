@@ -22,15 +22,18 @@ class Database:
         try:
             engine = self.getEngine()
             with engine.connect() as conn:
+                print(f"Exécution de la requête: \n{query}")
                 result = conn.execute(sqlalchemy.text(query))
                 columns = result.keys()
                 data = result.fetchall()
 
                 result_dataFrame = pd.DataFrame(data, columns=columns)
+                print(f"Résultat de la requête: \n{result_dataFrame}")
 
                 return result_dataFrame
         except Exception as e:
             print("Erreur lors de la lecture de la table {}".format(e))
+            return pd.DataFrame([], columns=columns)
 
     def exec_query_with_commit(self, query: str):
         try:
