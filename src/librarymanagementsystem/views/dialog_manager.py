@@ -1,3 +1,4 @@
+import bcrypt
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
 from librarymanagementsystem.entities.author import Author
@@ -36,13 +37,17 @@ class DialogManager:
         response = dialog.exec()
         if response == QDialog.Accepted:
             data = dialog.get_data()
+            password = data["password"]
+            hashed_password = bcrypt.hashpw(
+                password.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
             return User(
-                data["nom"],
+                data["name"],
                 data["email"],
                 data["phone"],
                 data["birthday"],
-                data["statut"],
-                data["hash_mot_passe"],
+                data["status"],
+                hashed_password,
             )
         return None
 
@@ -102,11 +107,17 @@ class DialogManager:
         dialog.populate_fields(user)
         if dialog.exec() == QDialog.Accepted:
             data = dialog.get_data()
+            password = data["password"]
+            hashed_password = bcrypt.hashpw(
+                password.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
             return User(
-                data["nom"],
+                data["name"],
                 data["email"],
-                data["statut"],
-                data["hash_mot_passe"],
+                data["phone"],
+                data["birthday"],
+                data["status"],
+                hashed_password,
                 user.id,
             )
         return None
