@@ -13,17 +13,34 @@ class UserRepository:
     def insert(self, user: User):
         query = f"""
           INSERT INTO utilisateurs
-            (nom, email, date_naissance, statut, hash_mot_passe)
+            (nom, email, telephone, date_naissance, statut, hash_mot_passe)
           VALUES
-            ('{user.username}', '{user.email}', '{user.birthday}', '{user.status}', '{user.password}')
+            ("{user.username}",
+             "{user.email}",
+             "{user.phone}",
+             "{user.birthday}",
+             "{user.status}",
+             "{user.password}")
         """
         self.database.exec_query_with_commit(query)
 
     def modify(self, user: User):
         query = f"""
           UPDATE utilisateurs
-          SET nom = '{user.username}', email = '{user.email}', statut = '{user.status}', hash_mot_passe = '{user.password}'
+          SET nom = "{user.username}",
+            email = "{user.email}",
+            telephone = "{user.phone}",
+            date_naissance = "{user.birthday}",
+            statut = "{user.status}"
           WHERE id_utilisateurs = {user.id}
+        """
+        self.database.exec_query_with_commit(query)
+
+    def change_password(self, user_id: int, password: str):
+        query = f"""
+          UPDATE utilisateurs
+          SET hash_mot_passe = "{password}"
+          WHERE id_utilisateurs = {user_id}
         """
         self.database.exec_query_with_commit(query)
 

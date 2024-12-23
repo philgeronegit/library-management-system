@@ -54,6 +54,10 @@ class LoginDialog(QDialog):
 
     def get_data(self) -> dict:
         return {
-            "nom": self.name_input.text().strip(),
-            "hash_mot_passe": self.password_input.text().strip(),
+            "name": self.name_input.text().strip(),
+            "password": self.password_input.text().strip(),
         }
+
+    def populate_fields(self, user_name: str):
+        self.name_input.setText(user_name)
+        self.name_input.setEnabled(False)
