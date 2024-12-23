@@ -5,6 +5,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 from librarymanagementsystem.library_app import LibraryApp
+from librarymanagementsystem.utils.constants import USER_ROLE_ADMIN, USER_ROLE_USER
 
 
 def main():
@@ -13,7 +14,7 @@ def main():
     )
     parser.add_argument(
         "--role",
-        choices=["none", "user", "admin"],
+        choices=["none", USER_ROLE_USER, USER_ROLE_ADMIN],
         default="none",
         help="Specify the role to log in as (user or admin).",
     )
@@ -29,5 +30,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()
