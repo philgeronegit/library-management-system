@@ -38,7 +38,6 @@ class LibraryView(QMainWindow):
         self.setWindowIcon(icon)
         self.setWindowTitle("Librairie")
 
-        self.is_ready = False
         self.library_app = library_app
         self.create_ui()
 
@@ -127,23 +126,20 @@ class LibraryView(QMainWindow):
         self.filter_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.all_books_radio = QRadioButton("Tous les livres")
         self.all_books_radio.setProperty("type", "all")
-        self.all_books_radio.toggled.connect(self.handle_radio_button_toggled)
+
         self.all_books_radio.setChecked(True)
         self.available_books_radio = QRadioButton("Livres disponibles")
         self.available_books_radio.setProperty("type", "available")
-        self.available_books_radio.toggled.connect(self.handle_radio_button_toggled)
+
         self.borrowed_books_radio = QRadioButton("Livres empruntés")
         self.borrowed_books_radio.setProperty("type", "borrowed")
-        self.borrowed_books_radio.toggled.connect(self.handle_radio_button_toggled)
+
         self.deleted_books_radio = QRadioButton("Livres supprimés")
         self.deleted_books_radio.setProperty("type", "deleted")
-        self.deleted_books_radio.toggled.connect(self.handle_radio_button_toggled)
+
         self.late_books_radio = QRadioButton("Retours en retard")
         self.late_books_radio.setProperty("type", "late")
-        self.late_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.user_combo_box = QComboBox()
-        self.user_combo_box.addItem("Tous")
-        self.is_ready = True
 
         self.filter_layout.addWidget(self.all_books_radio)
         self.filter_layout.addWidget(self.available_books_radio)
@@ -185,9 +181,6 @@ class LibraryView(QMainWindow):
         self.search_input.textChanged.connect(self.restart_search_timer)
 
     def handle_radio_button_toggled(self):
-        if not self.is_ready:
-            return
-
         rbtn = self.sender()
         self.library_app.book_controller.filter_change(rbtn.property("type"))
 
@@ -281,6 +274,11 @@ class LibraryView(QMainWindow):
         self.setStatusBar(QStatusBar(self))
 
     def connect_signals(self):
+        self.all_books_radio.toggled.connect(self.handle_radio_button_toggled)
+        self.available_books_radio.toggled.connect(self.handle_radio_button_toggled)
+        self.borrowed_books_radio.toggled.connect(self.handle_radio_button_toggled)
+        self.deleted_books_radio.toggled.connect(self.handle_radio_button_toggled)
+        self.late_books_radio.toggled.connect(self.handle_radio_button_toggled)
         self.add_action.triggered.connect(self.library_app.book_controller.add)
         self.modify_action.triggered.connect(self.library_app.book_controller.modify)
         self.delete_action.triggered.connect(self.library_app.book_controller.delete)
