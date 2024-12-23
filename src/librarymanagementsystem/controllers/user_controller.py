@@ -2,25 +2,25 @@ from PyQt6.QtCore import Qt
 
 from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.managers.user_manager import UserManager
-from librarymanagementsystem.repositories.database import Database
 from librarymanagementsystem.utils.selection import get_selected_indexes
 from librarymanagementsystem.utils.viewport import update_viewport
+from librarymanagementsystem.views.dialog_manager import DialogManager
 from librarymanagementsystem.views.table_model import TableModel
 
 
 class UserController:
-    def __init__(self, database: Database, view, dialog_manager):
+    def __init__(self, user_manager: UserManager, view, dialog_manager: DialogManager):
         self.users_model = None
-        self.user_manager = UserManager(database)
+        self.user_manager = user_manager
         self.view = view
         self.dialog_manager = dialog_manager
 
     def read_all(self):
         df = self.user_manager.read_all()
         self.users_model = TableModel(df)
-        self.update_viewport_users()
+        update_viewport(self.view.users_table, self.users_model)
 
-    def add_user(self):
+    def add(self):
         """Add a new user to the list"""
         new_user = self.dialog_manager.add_user()
         if new_user is None:
@@ -29,11 +29,7 @@ class UserController:
         self.user_manager.insert(new_user)
         self.read_all()
 
-    def insert(self, user):
-        self.user_manager.insert(user)
-        self.read_all()
-
-    def modify_user(self):
+    def modify(self):
         """Modify a user from the list"""
         user = self.get_selected_user()
         if user is None:
@@ -45,7 +41,7 @@ class UserController:
         self.user_manager.modify(existing_user)
         self.read_all()
 
-    def delete_user(self):
+    def delete(self):
         """Delete a user from the list"""
         user = self.get_selected_user()
         if user is None:
@@ -107,6 +103,3 @@ class UserController:
                 break
 
         return selected_user
-
-    def update_viewport_users(self):
-        update_viewport(self.view.users_table, self.users_model)

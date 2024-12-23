@@ -3,13 +3,11 @@ import datetime
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
 
-from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
-from librarymanagementsystem.entities.genre import Genre
-from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.managers.book_manager import BookManager
 from librarymanagementsystem.managers.loan_manager import LoanManager
 from librarymanagementsystem.repositories.database import Database
+from librarymanagementsystem.utils.constants import BORROWED_BOOKS, USER_ROLE_ADMIN
 from librarymanagementsystem.utils.selection import (
     get_column_index_by_name,
     get_integer_value,
@@ -28,6 +26,7 @@ class BookController:
         author_controller,
         genre_controller,
         user_controller,
+        login_controller,
         dialog_manager,
     ):
         self.filter_type = "all"
@@ -39,16 +38,21 @@ class BookController:
         self.author_controller = author_controller
         self.genre_controller = genre_controller
         self.user_controller = user_controller
+        self.login_controller = login_controller
         self.dialog_manager = dialog_manager
-        self.selected_user = None
-
-    def set_selected_user(self, user):
-        self.selected_user = user
 
     def filter_change(self, type: str):
         print(f"Filter change {type}")
         self.filter_type = type
-        self.read_books()
+        if type == BORROWED_BOOKS:
+            user_id = ""
+            if self.login_controller.selected_user is None:
+                user_id = ""
+            elif self.login_controller.selected_user.role != USER_ROLE_ADMIN:
+                user_id = self.login_controller.selected_user.id
+            self.read_all(type, user_id)
+        else:
+            self.read_all()
 
     def perform_search(self, search_text):
         self.read_all(filter_type="search", filter_text=search_text)
@@ -60,9 +64,6 @@ class BookController:
     def update_viewport_books(self):
         update_viewport(self.view.books_table, self.books_model)
         self.show_books_number()
-
-    def read_books(self):
-        self.read_all(filter_type=self.filter_type)
 
     def show_books_number(self):
         length = 0
@@ -87,8 +88,7 @@ class BookController:
         to_delete = self.dialog_manager.delete_book(book)
         if to_delete:
             self.book_manager.delete(book.id, user_id)
-            self.read_books()
-            self.update_viewport_books()
+            self.read_all()
 
     def get_selected_book(self) -> Book | None:
         """Get the selected book from the table"""
@@ -209,12 +209,13 @@ class BookController:
             id=book_data["id"],
         )
         self.book_manager.modify(existing_book, user_id)
-        self.read_books()
-        self.update_viewport_books()
+        self.read_all()
 
     def borrow_book(self):
         """Borrow a book from the list"""
-        if self.selected_user is None or self.selected_user.role == "admin":
+        selected_user = self.login_controller.selected_user
+        print(f"Selectedd user {selected_user}")
+        if selected_user is None or selected_user.role == USER_ROLE_ADMIN:
             QMessageBox.information(
                 self.view,
                 "Utilisateur",
@@ -222,7 +223,7 @@ class BookController:
             )
             return
 
-        user_id = self.selected_user.id
+        user_id = selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -236,19 +237,19 @@ class BookController:
 
         if button == QMessageBox.StandardButton.Yes:
             self.loan_manager.borrow_book(book.id, user_id)
-            self.read_books()
-            self.update_viewport_books()
+            self.read_all()
 
     def restore_book(self):
         """Restore books from the list"""
-        if self.selected_user is None:
+        selected_user = self.login_controller.selected_user
+        if selected_user is None:
             QMessageBox.information(
                 self.view,
                 "Utilisateur",
                 "Veuillez vous connecter en tant qu'utilisateur",
             )
             return
-        user_id = self.selected_user.id
+        user_id = selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -262,8 +263,7 @@ class BookController:
 
         if button == QMessageBox.StandardButton.Yes:
             self.loan_manager.return_book(book.id, user_id)
-            self.read_books()
-            self.update_viewport_books()
+            self.read_all()
 
     def reserve_book(self):
         book = self.get_selected_book()
@@ -298,4 +298,4 @@ class BookController:
             return
 
         self.book_manager.insert(new_book, user_id)
-        self.read_books()
+        self.read_all()

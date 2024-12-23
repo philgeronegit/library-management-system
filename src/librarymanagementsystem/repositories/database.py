@@ -22,7 +22,6 @@ class Database:
         try:
             engine = self.getEngine()
             with engine.connect() as conn:
-                print(f"Exécution de la requête: \n{query}")
                 result = conn.execute(sqlalchemy.text(query))
                 columns = result.keys()
                 data = result.fetchall()
