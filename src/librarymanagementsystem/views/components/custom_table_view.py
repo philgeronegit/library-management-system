@@ -4,21 +4,19 @@ from PyQt6.QtWidgets import QMenu, QTableView
 
 
 class CustomTableView(QTableView):
-    def __init__(self, name, controller, parent=None):
+    def __init__(self, name: str, app, parent=None):
         super().__init__(parent)
-        self.controller = controller
+        self.app = app
         self.name = name
 
         self.create_ui()
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.show_context_menu)
-        self.doubleClicked.connect(self.on_double_click)
 
     def create_ui(self):
         self.menu = QMenu()
         self.add_action = QAction("Ajouter", self)
         self.add_action.setEnabled(False)
-        self.add_action.triggered.connect(lambda: self.controller.add_item(self.name))
+        self.add_action.triggered.connect(lambda: self.app.add_item(self.name))
         self.menu.addAction(self.add_action)
         self.modify_action = QAction("Modifier", self)
         self.modify_action.setEnabled(False)
@@ -29,7 +27,8 @@ class CustomTableView(QTableView):
         self.menu.addAction(self.delete_action)
 
     def connect_signals(self):
-        pass
+        self.customContextMenuRequested.connect(self.show_context_menu)
+        self.doubleClicked.connect(self.on_double_click)
 
     def show_context_menu(self, position):
         index = self.indexAt(position)
@@ -50,23 +49,23 @@ class CustomTableView(QTableView):
 
     def delete_clicked(self, index):
         index = self.get_index_data(index)
-        self.controller.delete_selected_item(self.name, index)
+        self.app.delete_selected_item(self.name, index)
 
     def modify_clicked(self, index):
         index = self.get_index_data(index)
-        self.controller.modify_selected_item(self.name, index)
+        self.app.modify_selected_item(self.name, index)
 
     def on_double_click(self, index):
         if not index.isValid():
             return
 
         index = self.get_index_data(index)
-        self.controller.modify_selected_item(self.name, index)
+        self.app.modify_selected_item(self.name, index)
 
 
 class CustomTableViewBook(CustomTableView):
-    def __init__(self, name, controller, parent=None):
-        super().__init__(name, controller, parent)
+    def __init__(self, name, app, parent=None):
+        super().__init__(name, app, parent)
 
     def create_ui(self):
         super().create_ui()
@@ -80,9 +79,19 @@ class CustomTableViewBook(CustomTableView):
 
     def connect_signals(self):
         super().connect_signals()
-        self.borrow_action.triggered.connect(
-            self.controller.book_controller.borrow_book
-        )
-        self.restore_action.triggered.connect(
-            self.controller.book_controller.restore_book
-        )
+        self.borrow_action.triggered.connect(self.app.book_controller.borrow_book)
+        self.restore_action.triggered.connect(self.app.book_controller.restore_book)
+
+
+class CustomTableViewUser(CustomTableView):
+    def __init__(self, name, app, parent=None):
+        super().__init__(name, app, parent)
+
+    def create_ui(self):
+        super().create_ui()
+        self.change_password_action = QAction("Changer mot de passe", self)
+        self.menu.addAction(self.change_password_action)
+
+    def connect_signals(self):
+        super().connect_signals()
+        self.change_password_action.triggered.connect(self.app.change_password)
