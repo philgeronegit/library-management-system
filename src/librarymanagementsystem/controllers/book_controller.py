@@ -70,8 +70,10 @@ class BookController:
             length = self.books_model.rowCount(1)
             self.view.statusBar().showMessage(f"Nombre de livres : {length}")
 
-    def read_all(self, filter_type: str, filter_text=""):
-        df = self.book_manager.read_all(filter_type, filter_text)
+    def read_all(self, filter_type: str = None, filter_text=""):
+        type = filter_type or self.filter_type
+        print(f"Type {type}")
+        df = self.book_manager.read_all(type, filter_text)
         self.books_model = TableModel(df)
         self.update_viewport_books()
         self.show_books_number()

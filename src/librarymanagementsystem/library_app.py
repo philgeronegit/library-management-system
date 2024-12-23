@@ -50,16 +50,20 @@ class LibraryApp:
             user = User("John Doe", "admin", "", "", "actif", "john", id=1, role="user")
         self.login_controller.login_as_user(user)
         self.book_controller.set_selected_user(user)
+        self.controllers = [
+            self.book_controller,
+            self.author_controller,
+            self.genre_controller,
+            self.user_controller,
+        ]
 
     def run(self):
-        # try:
-        self.borrow_rules_controller.read_borrow_rules()
-        self.book_controller.read_books()
-        self.author_controller.read_all()
-        self.genre_controller.read_all()
-        self.user_controller.read_all()
-        # except Exception as e:
-        #     print("Impossible de lire les tables {}".format(e))
+        try:
+            self.borrow_rules_controller.read_borrow_rules()
+            for controller in self.controllers:
+                controller.read_all()
+        except Exception as e:
+            print("Impossible de lire les tables {}".format(e))
         self.setup_ui()
 
         # show statusbar message
