@@ -28,7 +28,6 @@ class Database:
                 data = result.fetchall()
 
                 result_dataFrame = pd.DataFrame(data, columns=columns)
-                print(f"Résultat de la requête: \n{result_dataFrame}")
 
                 return result_dataFrame
         except Exception as e:
