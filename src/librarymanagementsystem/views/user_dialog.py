@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from librarymanagementsystem.bo.user import User
+from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.utils import input_factory
 
 
@@ -30,9 +30,12 @@ class UserDialog(QDialog):
         label, self.email_input = input_factory("Email :")
         self.form_layout.addRow(label, self.email_input)
 
+        label, self.phone_input = input_factory("Téléphone :")
+        self.form_layout.addRow(label, self.phone_input)
+
         label, self.birth_date_input = input_factory("Date naissance :")
         self.birth_date_input.setInputMask("0000-00-00")
-        self.form_layout.addRow(label, self.email_input)
+        self.form_layout.addRow(label, self.birth_date_input)
 
         label, self.status_input = input_factory("Statut :")
         self.form_layout.addRow(label, self.status_input)
@@ -56,6 +59,8 @@ class UserDialog(QDialog):
         return {
             "nom": self.name_input.text().strip(),
             "email": self.email_input.text().strip(),
+            "phone": self.phone_input.text().strip(),
+            "birthday": self.birth_date_input.text().strip(),
             "statut": self.status_input.text().strip(),
             "hash_mot_passe": self.password_input.text().strip(),
             "id": self.user.id if hasattr(self, "user") else None,
@@ -78,6 +83,8 @@ class UserDialog(QDialog):
         self.user = user
         self.name_input.setText(user.username)
         self.email_input.setText(user.email)
+        self.phone_input.setText(user.phone)
+        self.birth_date_input.setText(user.birthday)
         self.status_input.setText(user.status)
         self.password_input.setText(user.password)
         self.validate_inputs()

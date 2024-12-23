@@ -1,8 +1,9 @@
 import qtawesome as qta
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QDialog, QFormLayout, QHBoxLayout, QPushButton, QVBoxLayout
 
-from librarymanagementsystem.bo.genre import Genre
+from librarymanagementsystem.entities.genre import Genre
 from librarymanagementsystem.views.utils import input_factory
 
 

@@ -1,9 +1,9 @@
 import datetime
 import uuid
 
-from librarymanagementsystem.bo.author import Author
-from librarymanagementsystem.bo.genre import Genre
-from librarymanagementsystem.bo.user import User
+from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.entities.genre import Genre
+from librarymanagementsystem.entities.user import User
 
 
 class Book:

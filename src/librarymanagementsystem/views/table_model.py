@@ -4,7 +4,7 @@ import pandas as pd
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt
 
-from librarymanagementsystem.bo.book import Book
+from librarymanagementsystem.entities.book import Book
 
 
 class TableModel(QtCore.QAbstractTableModel):

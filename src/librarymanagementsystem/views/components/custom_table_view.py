@@ -27,13 +27,9 @@ class CustomTableView(QTableView):
         self.delete_action = QAction("Supprimer", self)
         self.delete_action.setEnabled(False)
         self.menu.addAction(self.delete_action)
-        if self.name == "books":
-            borrow_action = QAction("Emprunter", self)
-            borrow_action.triggered.connect(self.controller.borrow_book)
-            self.menu.addAction(borrow_action)
-            restore_action = QAction("Restituer", self)
-            restore_action.triggered.connect(self.controller.restore_book)
-            self.menu.addAction(restore_action)
+
+    def connect_signals(self):
+        pass
 
     def show_context_menu(self, position):
         index = self.indexAt(position)
@@ -66,3 +62,27 @@ class CustomTableView(QTableView):
 
         index = self.get_index_data(index)
         self.controller.modify_selected_item(self.name, index)
+
+
+class CustomTableViewBook(CustomTableView):
+    def __init__(self, name, controller, parent=None):
+        super().__init__(name, controller, parent)
+
+    def create_ui(self):
+        super().create_ui()
+        self.borrow_action = QAction("Emprunter", self)
+        self.borrow_action.setEnabled(False)
+        self.menu.addAction(self.borrow_action)
+
+        self.restore_action = QAction("Restituer", self)
+        self.restore_action.setEnabled(False)
+        self.menu.addAction(self.restore_action)
+
+    def connect_signals(self):
+        super().connect_signals()
+        self.borrow_action.triggered.connect(
+            self.controller.book_controller.borrow_book
+        )
+        self.restore_action.triggered.connect(
+            self.controller.book_controller.restore_book
+        )
