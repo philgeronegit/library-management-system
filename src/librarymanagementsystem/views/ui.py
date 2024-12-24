@@ -76,6 +76,14 @@ class LibraryView(QMainWindow):
         self.logout_action = self.user_menu.addAction("Logout")
         self.logout_action.triggered.connect(self.logout)
         self.logout_action.setEnabled(False)
+        self.user_add_action = self.user_menu.addAction("Ajouter")
+        self.user_add_action.triggered.connect(self.user_add)
+        self.author_menu = self.menu.addMenu("Auteurs")
+        self.author_add_action = self.author_menu.addAction("Ajouter")
+        self.author_add_action.triggered.connect(self.author_add)
+        self.genre_menu = self.menu.addMenu("Genres")
+        self.genre_add_action = self.genre_menu.addAction("Ajouter")
+        self.genre_add_action.triggered.connect(self.genre_add)
 
         self.centralWidget = QWidget()
 
@@ -207,6 +215,18 @@ class LibraryView(QMainWindow):
     def logout(self):
         self.library_app.login_controller.logout()
 
+    def user_add(self):
+        self.tab.setCurrentIndex(1)
+        self.library_app.user_controller.add()
+
+    def author_add(self):
+        self.tab.setCurrentIndex(2)
+        self.library_app.author_controller.add()
+
+    def genre_add(self):
+        self.tab.setCurrentIndex(3)
+        self.library_app.genre_controller.add()
+
     def set_tab_visibility(self, is_visible: bool):
         self.tab.setTabVisible(1, is_visible)
         self.tab.setTabVisible(2, is_visible)
@@ -214,7 +234,11 @@ class LibraryView(QMainWindow):
         self.tab.setTabVisible(4, is_visible)
 
     def update_user_actions(self, user: User = None):
+        """Update the actions available to the user"""
         if user is None:
+            self.author_menu.setEnabled(False)
+            self.genre_menu.setEnabled(False)
+            self.user_add_action.setVisible(False)
             self.users_filter_label.setVisible(False)
             self.user_combo_box.setVisible(False)
             self.deleted_books_radio.setVisible(False)
@@ -241,6 +265,9 @@ class LibraryView(QMainWindow):
         self.logout_action.setEnabled(True)
 
         if user.role == USER_ROLE_ADMIN:
+            self.author_menu.setEnabled(True)
+            self.genre_menu.setEnabled(True)
+            self.user_add_action.setVisible(True)
             self.users_filter_label.setVisible(True)
             self.user_combo_box.setVisible(True)
             self.deleted_books_radio.setVisible(True)
@@ -249,17 +276,20 @@ class LibraryView(QMainWindow):
             self.add_action.setEnabled(True)
             self.modify_action.setEnabled(True)
             self.delete_action.setEnabled(True)
-            self.borrow_action.setEnabled(False)
-            self.restore_action.setEnabled(False)
-            self.reserve_action.setEnabled(False)
+            self.borrow_action.setEnabled(True)
+            self.restore_action.setEnabled(True)
+            self.reserve_action.setEnabled(True)
             for table in self.table_views:
                 table.add_action.setEnabled(True)
                 table.modify_action.setEnabled(True)
                 table.delete_action.setEnabled(True)
                 if table.name == "books":
-                    table.borrow_action.setEnabled(False)
-                    table.restore_action.setEnabled(False)
+                    table.borrow_action.setEnabled(True)
+                    table.restore_action.setEnabled(True)
         else:
+            self.author_menu.setEnabled(False)
+            self.genre_menu.setEnabled(False)
+            self.user_add_action.setVisible(False)
             self.users_filter_label.setVisible(False)
             self.user_combo_box.setVisible(False)
             self.deleted_books_radio.setVisible(False)
