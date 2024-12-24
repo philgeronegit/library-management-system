@@ -115,6 +115,9 @@ class BookController:
 
                 genre_id = get_model_data(books_model, row, "ID genre")
                 borrowed_date = get_model_data(books_model, row, "Date emprunt")
+                borrowed_by = get_integer_value(
+                    get_model_data(books_model, row, "Emprunté par")
+                )
                 return_date = get_model_data(books_model, row, "Date retour")
                 creation_date = get_model_data(books_model, row, "Date création")
                 created_by = get_model_data(books_model, row, "Créé par")
@@ -134,6 +137,7 @@ class BookController:
                     publication_date,
                     id=int(id),
                     borrowed_date=borrowed_date,
+                    borrowed_by=borrowed_by,
                     return_date=return_date,
                     creation_date=creation_date,
                     created_by=created_by,
@@ -142,7 +146,6 @@ class BookController:
                     deletion_date=deletion_date,
                     deleted_by=deleted_by,
                 )
-                print(selected_book)
                 break
 
         return selected_book
@@ -154,6 +157,7 @@ class BookController:
         genre_id: int,
         publication_date: datetime,
         borrowed_date: datetime = None,
+        borrowed_by: int = None,
         return_date: datetime = None,
         creation_date: datetime = None,
         created_by: int = None,
@@ -171,6 +175,7 @@ class BookController:
         created_by_user = self.user_controller.find_user(created_by)
         modified_by_user = self.user_controller.find_user(modified_by)
         deleted_by_user = self.user_controller.find_user(deleted_by)
+        borrowed_by_user = self.user_controller.find_user(borrowed_by)
         return Book(
             title,
             authors,
@@ -178,6 +183,7 @@ class BookController:
             publication_date,
             id=id,
             borrowing_date=borrowed_date,
+            borrowing_user=borrowed_by_user,
             return_date=return_date,
             creation_date=creation_date,
             added_by=created_by_user,
@@ -185,6 +191,18 @@ class BookController:
             modified_by=modified_by_user,
             deletion_date=deletion_date,
             deleted_by=deleted_by_user,
+        )
+
+    def show_book_info(self):
+        """Show the book info dialog"""
+        book = self.get_selected_book()
+        if book is None:
+            return
+
+        self.dialog_manager.show_book_info(
+            book,
+            self.author_controller.authors_model,
+            self.genre_controller.genres_model,
         )
 
     def modify(self, user_id: int):
@@ -249,7 +267,7 @@ class BookController:
                 "Veuillez vous connecter en tant qu'utilisateur",
             )
             return
-        user_id = selected_user.id
+
         book = self.get_selected_book()
         if book is None:
             return
@@ -262,7 +280,7 @@ class BookController:
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            self.loan_manager.return_book(book.id, user_id)
+            self.loan_manager.return_book(book.id, book.borrowing_user.id)
             self.read_all()
 
     def reserve_book(self):
