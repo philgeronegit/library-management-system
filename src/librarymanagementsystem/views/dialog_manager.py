@@ -7,6 +7,7 @@ from librarymanagementsystem.entities.genre import Genre
 from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.views.author_dialog import AuthorDialog
 from librarymanagementsystem.views.book_dialog import BookDialog
+from librarymanagementsystem.views.book_info import BookInfo
 from librarymanagementsystem.views.genre_dialog import GenreDialog
 from librarymanagementsystem.views.user_dialog import UserDialog
 
@@ -48,6 +49,7 @@ class DialogManager:
                 data["birthday"],
                 data["status"],
                 hashed_password,
+                role=data["role"],
             )
         return None
 
@@ -58,6 +60,11 @@ class DialogManager:
         if response == QDialog.Accepted:
             return dialog.get_data()
         return None
+
+    def show_book_info(self, book: Book, authors, genres):
+        dialog = BookInfo(authors, genres)
+        dialog.populate_fields(book)
+        dialog.exec()
 
     def modify_book(self, book: Book, authors, genres) -> dict | None:
         dialog = BookDialog(authors, genres)
@@ -118,7 +125,8 @@ class DialogManager:
                 data["birthday"],
                 data["status"],
                 hashed_password,
-                user.id,
+                id=user.id,
+                role=data["role"],
             )
         return None
 
