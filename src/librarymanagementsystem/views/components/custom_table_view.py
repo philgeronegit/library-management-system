@@ -60,7 +60,7 @@ class CustomTableView(QTableView):
             return
 
         index = self.get_index_data(index)
-        self.app.modify_selected_item(self.name, index)
+        self.app.show_selected_item(self.name, index)
 
 
 class CustomTableViewBook(CustomTableView):
