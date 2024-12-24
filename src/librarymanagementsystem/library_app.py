@@ -55,8 +55,8 @@ class LibraryApp:
             user = User(
                 "admin",
                 "admin@gmail.com",
-                "",
-                "",
+                "+336",
+                "1990-01-01",
                 USER_STATUS_ACTIF,
                 "admin",
                 id=5,
@@ -65,9 +65,9 @@ class LibraryApp:
         elif self.role == "user":
             user = User(
                 "John Doe",
-                "admin",
-                "",
-                "",
+                "john.doe@gmail.com",
+                "+336",
+                "1990-01-01",
                 USER_STATUS_ACTIF,
                 "john",
                 id=1,
@@ -109,18 +109,25 @@ class LibraryApp:
             self.view.modify_action.setEnabled(has_selection)
             self.view.delete_action.setEnabled(has_selection)
 
-    def setup_table(self, table_view, model):
+    def setup_table(self, table_view, model, hide_columns=[]):
         table_view.setModel(model)
         table_view.resizeColumnsToContents()
         table_view.setSortingEnabled(True)
         table_view.sortByColumn(1, Qt.SortOrder.AscendingOrder)
         table_view.setColumnHidden(0, True)
+        for column in hide_columns:
+            index = get_column_index_by_name(model, column)
+            table_view.setColumnHidden(index, True)
         table_view.verticalHeader().setVisible(False)
         table_view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
     def setup_ui(self):
         if self.user_controller.users_model is not None:
-            self.setup_table(self.view.users_table, self.user_controller.users_model)
+            self.setup_table(
+                self.view.users_table,
+                self.user_controller.users_model,
+                ["hash_mot_passe", "id_reservations"],
+            )
 
             rows = self.user_controller.users_model.rowCount(0)
 
@@ -186,6 +193,10 @@ class LibraryApp:
             self.author_controller.add()
         elif name == "users":
             self.user_controller.add()
+
+    def show_selected_item(self, name: str, index: int):
+        if name == "books":
+            self.book_controller.show_book_info()
 
     def modify_selected_item(self, name: str, index: int):
         if name == "books":
