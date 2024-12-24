@@ -14,7 +14,8 @@ def get_selected_indexes(custom_table_view: CustomTableView):
     return indexes
 
 
-def get_column_index_by_name(model, column_name: str):
+def get_column_index_by_name(model, column_name: str) -> int:
+    """Get the column index by name"""
     for column in range(model.columnCount(0)):
         if (
             model.headerData(
@@ -26,13 +27,15 @@ def get_column_index_by_name(model, column_name: str):
     return -1
 
 
-def get_model_data(model, row, column_name):
+def get_model_data(model, row, column_name: str):
+    """Get the data from the model"""
     role = Qt.ItemDataRole.DisplayRole
     index = get_column_index_by_name(model, column_name)
     return model.data(model.index(row, index), role)
 
 
 def get_integer_value(value: str | None) -> int | None:
+    """Get the integer value from the string"""
     if value is None:
         return None
     try:
