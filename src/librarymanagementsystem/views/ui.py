@@ -20,12 +20,21 @@ from PyQt6.QtWidgets import (
 )
 
 from librarymanagementsystem.entities.user import User
+from librarymanagementsystem.utils.constants import (
+    ALL_BOOKS,
+    AVAILABLE_BOOKS,
+    BORROWED_BOOKS,
+    DELETED_BOOKS,
+    LATE_BOOKS,
+    USER_ROLE_ADMIN,
+)
 from librarymanagementsystem.views.components.clearable_line_edit import (
     ClearableLineEdit,
 )
 from librarymanagementsystem.views.components.custom_table_view import (
     CustomTableView,
     CustomTableViewBook,
+    CustomTableViewUser,
 )
 from librarymanagementsystem.views.constants import LIGHT_GREEN_COLOR
 from librarymanagementsystem.views.utils import input_factory
@@ -67,6 +76,14 @@ class LibraryView(QMainWindow):
         self.logout_action = self.user_menu.addAction("Logout")
         self.logout_action.triggered.connect(self.logout)
         self.logout_action.setEnabled(False)
+        self.user_add_action = self.user_menu.addAction("Ajouter")
+        self.user_add_action.triggered.connect(self.user_add)
+        self.author_menu = self.menu.addMenu("Auteurs")
+        self.author_add_action = self.author_menu.addAction("Ajouter")
+        self.author_add_action.triggered.connect(self.author_add)
+        self.genre_menu = self.menu.addMenu("Genres")
+        self.genre_add_action = self.genre_menu.addAction("Ajouter")
+        self.genre_add_action.triggered.connect(self.genre_add)
 
         self.centralWidget = QWidget()
 
@@ -81,40 +98,42 @@ class LibraryView(QMainWindow):
         livres_tab.setLayout(self.livres_tab_layout)
         self.tab.addTab(livres_tab, "Livres")
 
-        utilisateurs_tab = QWidget()
-        self.utilisateurs_tab_layout = QVBoxLayout()
-        self.utilisateurs_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        utilisateurs_tab.setLayout(self.utilisateurs_tab_layout)
-        self.tab.addTab(utilisateurs_tab, "Utilisateurs")
+        self.users_tab = QWidget()
+        self.users_tab_layout = QVBoxLayout()
+        self.users_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.users_tab.setLayout(self.users_tab_layout)
+        self.tab.addTab(self.users_tab, "Utilisateurs")
 
-        auteurs_tab = QWidget()
-        self.auteurs_tab_layout = QVBoxLayout()
-        self.auteurs_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        auteurs_tab.setLayout(self.auteurs_tab_layout)
-        self.tab.addTab(auteurs_tab, "Auteurs")
+        self.authors_tab = QWidget()
+        self.authors_tab_layout = QVBoxLayout()
+        self.authors_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.authors_tab.setLayout(self.authors_tab_layout)
+        self.tab.addTab(self.authors_tab, "Auteurs")
 
-        genres_tab = QWidget()
+        self.genres_tab = QWidget()
         self.genres_tab_layout = QVBoxLayout()
         self.genres_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        genres_tab.setLayout(self.genres_tab_layout)
-        self.tab.addTab(genres_tab, "Genres")
+        self.genres_tab.setLayout(self.genres_tab_layout)
+        self.tab.addTab(self.genres_tab, "Genres")
 
-        regles_prets_tab = QWidget()
-        self.regles_prets_tab_layout = QVBoxLayout()
-        self.regles_prets_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.borrow_rules_tab = QWidget()
+        self.borrow_rules_tab_layout = QVBoxLayout()
+        self.borrow_rules_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         form_layout = QFormLayout()
-        self.regles_prets_tab_layout.addLayout(form_layout)
-        label, self.duree_maximale_emprunt_input = input_factory(
+        self.borrow_rules_tab_layout.addLayout(form_layout)
+        users_filter_label, self.duree_maximale_emprunt_input = input_factory(
             "Durée maximale emprunt :"
         )
-        form_layout.addRow(label, self.duree_maximale_emprunt_input)
-        label, self.penalite_retard_input = input_factory("Pénalité de retard :")
-        form_layout.addRow(label, self.penalite_retard_input)
+        form_layout.addRow(users_filter_label, self.duree_maximale_emprunt_input)
+        users_filter_label, self.penalite_retard_input = input_factory(
+            "Pénalité de retard :"
+        )
+        form_layout.addRow(users_filter_label, self.penalite_retard_input)
         self.save_regles_prets_button = QPushButton("Sauver")
-        self.regles_prets_tab_layout.addWidget(self.save_regles_prets_button)
+        self.borrow_rules_tab_layout.addWidget(self.save_regles_prets_button)
 
-        regles_prets_tab.setLayout(self.regles_prets_tab_layout)
-        self.tab.addTab(regles_prets_tab, "Règles de prêts")
+        self.borrow_rules_tab.setLayout(self.borrow_rules_tab_layout)
+        self.tab.addTab(self.borrow_rules_tab, "Règles de prêts")
 
         self.layout.addWidget(self.tab)
 
@@ -125,20 +144,20 @@ class LibraryView(QMainWindow):
         self.filter_layout = QHBoxLayout()
         self.filter_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.all_books_radio = QRadioButton("Tous les livres")
-        self.all_books_radio.setProperty("type", "all")
+        self.all_books_radio.setProperty("type", ALL_BOOKS)
 
         self.all_books_radio.setChecked(True)
         self.available_books_radio = QRadioButton("Livres disponibles")
-        self.available_books_radio.setProperty("type", "available")
+        self.available_books_radio.setProperty("type", AVAILABLE_BOOKS)
 
         self.borrowed_books_radio = QRadioButton("Livres empruntés")
-        self.borrowed_books_radio.setProperty("type", "borrowed")
+        self.borrowed_books_radio.setProperty("type", BORROWED_BOOKS)
 
         self.deleted_books_radio = QRadioButton("Livres supprimés")
-        self.deleted_books_radio.setProperty("type", "deleted")
+        self.deleted_books_radio.setProperty("type", DELETED_BOOKS)
 
         self.late_books_radio = QRadioButton("Retours en retard")
-        self.late_books_radio.setProperty("type", "late")
+        self.late_books_radio.setProperty("type", LATE_BOOKS)
         self.user_combo_box = QComboBox()
 
         self.filter_layout.addWidget(self.all_books_radio)
@@ -146,8 +165,8 @@ class LibraryView(QMainWindow):
         self.filter_layout.addWidget(self.borrowed_books_radio)
         self.filter_layout.addWidget(self.deleted_books_radio)
         self.filter_layout.addWidget(self.late_books_radio)
-        label = QLabel("Utilisateurs")
-        self.filter_layout.addWidget(label)
+        self.users_filter_label = QLabel("Utilisateurs")
+        self.filter_layout.addWidget(self.users_filter_label)
         self.filter_layout.addWidget(self.user_combo_box)
         self.livres_tab_layout.addLayout(self.filter_layout)
 
@@ -156,13 +175,13 @@ class LibraryView(QMainWindow):
         self.table_views.append(self.books_table)
         self.livres_tab_layout.addWidget(self.books_table)
 
-        self.users_table = CustomTableView("users", self.library_app)
+        self.users_table = CustomTableViewUser("users", self.library_app)
         self.table_views.append(self.users_table)
-        self.utilisateurs_tab_layout.addWidget(self.users_table)
+        self.users_tab_layout.addWidget(self.users_table)
 
         self.authors_table = CustomTableView("authors", self.library_app)
         self.table_views.append(self.authors_table)
-        self.auteurs_tab_layout.addWidget(self.authors_table)
+        self.authors_tab_layout.addWidget(self.authors_table)
 
         self.genres_table = CustomTableView("genres", self.library_app)
         self.table_views.append(self.genres_table)
@@ -189,16 +208,44 @@ class LibraryView(QMainWindow):
         sys.exit()
 
     def login(self):
-        self.library_app.login()
+        self.library_app.login_controller.login(
+            self.library_app.user_controller.users_model
+        )
 
     def logout(self):
         self.library_app.login_controller.logout()
-        self.library_app.book_controller.set_selected_user(None)
+
+    def user_add(self):
+        self.tab.setCurrentIndex(1)
+        self.library_app.user_controller.add()
+
+    def author_add(self):
+        self.tab.setCurrentIndex(2)
+        self.library_app.author_controller.add()
+
+    def genre_add(self):
+        self.tab.setCurrentIndex(3)
+        self.library_app.genre_controller.add()
+
+    def set_tab_visibility(self, is_visible: bool):
+        self.tab.setTabVisible(1, is_visible)
+        self.tab.setTabVisible(2, is_visible)
+        self.tab.setTabVisible(3, is_visible)
+        self.tab.setTabVisible(4, is_visible)
 
     def update_user_actions(self, user: User = None):
+        """Update the actions available to the user"""
         if user is None:
+            self.author_menu.setEnabled(False)
+            self.genre_menu.setEnabled(False)
+            self.user_add_action.setVisible(False)
+            self.users_filter_label.setVisible(False)
+            self.user_combo_box.setVisible(False)
+            self.deleted_books_radio.setVisible(False)
+            self.late_books_radio.setVisible(False)
             self.login_action.setEnabled(True)
             self.logout_action.setEnabled(False)
+            self.set_tab_visibility(False)
             self.add_action.setEnabled(False)
             self.modify_action.setEnabled(False)
             self.delete_action.setEnabled(False)
@@ -217,18 +264,37 @@ class LibraryView(QMainWindow):
         self.login_action.setEnabled(False)
         self.logout_action.setEnabled(True)
 
-        if user.role == "admin":
+        if user.role == USER_ROLE_ADMIN:
+            self.author_menu.setEnabled(True)
+            self.genre_menu.setEnabled(True)
+            self.user_add_action.setVisible(True)
+            self.users_filter_label.setVisible(True)
+            self.user_combo_box.setVisible(True)
+            self.deleted_books_radio.setVisible(True)
+            self.late_books_radio.setVisible(True)
+            self.set_tab_visibility(True)
             self.add_action.setEnabled(True)
             self.modify_action.setEnabled(True)
             self.delete_action.setEnabled(True)
-            self.borrow_action.setEnabled(False)
-            self.restore_action.setEnabled(False)
-            self.reserve_action.setEnabled(False)
+            self.borrow_action.setEnabled(True)
+            self.restore_action.setEnabled(True)
+            self.reserve_action.setEnabled(True)
             for table in self.table_views:
                 table.add_action.setEnabled(True)
                 table.modify_action.setEnabled(True)
                 table.delete_action.setEnabled(True)
+                if table.name == "books":
+                    table.borrow_action.setEnabled(True)
+                    table.restore_action.setEnabled(True)
         else:
+            self.author_menu.setEnabled(False)
+            self.genre_menu.setEnabled(False)
+            self.user_add_action.setVisible(False)
+            self.users_filter_label.setVisible(False)
+            self.user_combo_box.setVisible(False)
+            self.deleted_books_radio.setVisible(False)
+            self.late_books_radio.setVisible(False)
+            self.set_tab_visibility(False)
             self.add_action.setEnabled(False)
             self.modify_action.setEnabled(False)
             self.delete_action.setEnabled(False)
@@ -239,6 +305,9 @@ class LibraryView(QMainWindow):
                 table.add_action.setEnabled(False)
                 table.modify_action.setEnabled(False)
                 table.delete_action.setEnabled(False)
+                if table.name == "books":
+                    table.borrow_action.setEnabled(True)
+                    table.restore_action.setEnabled(True)
 
     def create_toolbar(self):
         toolbar = QToolBar("Main Toolbar")

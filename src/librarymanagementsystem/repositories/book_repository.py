@@ -2,6 +2,15 @@ import sqlalchemy
 
 from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.repositories.database import Database
+from librarymanagementsystem.utils.constants import (
+    ALL_BOOKS,
+    AVAILABLE_BOOKS,
+    BORROWED_BOOKS,
+    DELETED_BOOKS,
+    LATE_BOOKS,
+    SEARCH_BOOKS,
+    USER_BOOKS,
+)
 
 
 class BookRepository:
@@ -9,8 +18,9 @@ class BookRepository:
         self.database = database
 
     def read_all(self, filter_type="all", filter_text=""):
+        print(f"Read all books filter_type: {filter_type}, filter_text: {filter_text}")
         query = ""
-        if filter_type == "all":
+        if filter_type == ALL_BOOKS:
             query = """
               SELECT
                 l.id_livres AS ID,
@@ -21,6 +31,7 @@ class BookRepository:
                 l.date_publication AS 'Date publication',
                 e.date_emprunt AS 'Date emprunt',
                 e.id_utilisateurs as 'Emprunté par',
+                ue.nom AS Utilisateur,
                 e.date_retour AS 'Date retour',
                 l.date_creation AS 'Date création',
                 l.cree_par AS 'Créé par',
@@ -45,10 +56,11 @@ class BookRepository:
                 modifie m ON m.id_livres = l.id_livres
                     LEFT JOIN
                 utilisateurs u ON u.id_utilisateurs = m.id_utilisateurs
+            LEFT JOIN utilisateurs ue ON ue.id_utilisateurs = e.id_utilisateurs
             WHERE l.date_suppression IS NULL
             GROUP BY l.id_livres;
           """
-        elif filter_type == "user":
+        elif filter_type == USER_BOOKS:
             query = f"""
               SELECT
                 l.id_livres AS ID,
@@ -59,7 +71,6 @@ class BookRepository:
                 l.date_publication AS 'Date publication',
                 e.date_emprunt AS 'Date emprunt',
                 e.id_utilisateurs as 'Emprunté par',
-                e.id_utilisateurs,
                 e.date_retour AS 'Date retour',
                 l.date_creation AS 'Date création',
                 l.cree_par AS 'Créé par',
@@ -88,7 +99,7 @@ class BookRepository:
               e.id_utilisateurs = {filter_text}
             GROUP BY l.id_livres;
           """
-        elif filter_type == "deleted":
+        elif filter_type == DELETED_BOOKS:
             query = """
               SELECT
                 l.id_livres AS ID,
@@ -126,7 +137,7 @@ class BookRepository:
             WHERE l.date_suppression IS NOT NULL
             GROUP BY l.id_livres;
           """
-        elif filter_type == "search":
+        elif filter_type == SEARCH_BOOKS:
             query = f"""
               SELECT * FROM
               (SELECT
@@ -152,7 +163,7 @@ class BookRepository:
               GROUP BY l.id_livres) AS livres
               WHERE titre LIKE '%{filter_text}%' OR auteurs LIKE '%{filter_text}%' OR genre LIKE '%{filter_text}%'
             """
-        elif filter_type == "available":
+        elif filter_type == AVAILABLE_BOOKS:
             query = """
               SELECT
                   l.id_livres AS ID,
@@ -177,8 +188,11 @@ class BookRepository:
                 AND l.date_suppression IS NULL
               GROUP BY l.id_livres
             """
-        elif filter_type == "borrowed":
-            query = """
+        elif filter_type == BORROWED_BOOKS:
+            where_clause = ""
+            if filter_text != "":
+                where_clause = f" AND e.id_utilisateurs = {filter_text}"
+            query = f"""
               SELECT
                   l.id_livres AS ID,
                   l.titre AS Titre,
@@ -200,10 +214,10 @@ class BookRepository:
               LEFT JOIN emprunts e ON l.id_livres = e.id_livres
               LEFT JOIN utilisateurs u ON u.id_utilisateurs = e.id_utilisateurs
               WHERE e.date_emprunt IS NOT NULL AND e.date_retour IS NULL
-                AND l.date_suppression IS NULL
+                AND l.date_suppression IS NULL {where_clause}
               GROUP BY l.id_livres;
             """
-        elif filter_type == "late":
+        elif filter_type == LATE_BOOKS:
             query = """
               SELECT
                   *
@@ -335,7 +349,14 @@ class BookRepository:
         """
         self.database.exec_query_with_commit(query)
 
-    def return_book(self, book_id, user_id):
+    def return_book(self, book_id: int, user_id: int):
+        query = f"""
+          UPDATE emprunts
+          SET date_retour = CURDATE()
+          WHERE id_livres = {book_id} AND id_utilisateurs = {user_id}
+        """
+        print("return query: ", query)
+        self.database.exec_query_with_commit(query)
         query = f"""
           UPDATE emprunts
           SET date_retour = CURDATE()
