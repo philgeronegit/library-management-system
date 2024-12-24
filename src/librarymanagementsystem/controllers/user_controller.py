@@ -18,6 +18,7 @@ class UserController:
     def read_all(self):
         df = self.user_manager.read_all()
         self.users_model = TableModel(df)
+        print(f"Empty {df.empty}")
         update_viewport(self.view.users_table, self.users_model)
 
     def add(self):
@@ -93,13 +94,16 @@ class UserController:
 
                 users_model = self.users_model
                 id = users_model.data(users_model.index(row, 0), role)
-                nom = users_model.data(users_model.index(row, 1), role)
-                mot_passe = users_model.data(users_model.index(row, 2), role)
+                name = users_model.data(users_model.index(row, 1), role)
+                password = users_model.data(users_model.index(row, 2), role)
                 email = users_model.data(users_model.index(row, 3), role)
                 phone = users_model.data(users_model.index(row, 4), role)
                 birthday = users_model.data(users_model.index(row, 5), role)
-                statut = users_model.data(users_model.index(row, 6), role)
-                selected_user = User(nom, email, phone, birthday, statut, mot_passe, id)
+                status = users_model.data(users_model.index(row, 6), role)
+                role = users_model.data(users_model.index(row, 7), role)
+                selected_user = User(
+                    name, email, phone, birthday, status, password, id=id, role=role
+                )
                 break
 
         return selected_user

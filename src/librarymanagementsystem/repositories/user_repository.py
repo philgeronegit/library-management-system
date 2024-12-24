@@ -13,13 +13,14 @@ class UserRepository:
     def insert(self, user: User):
         query = f"""
           INSERT INTO utilisateurs
-            (nom, email, telephone, date_naissance, statut, hash_mot_passe)
+            (nom, email, telephone, date_naissance, statut, role, hash_mot_passe)
           VALUES
             ("{user.username}",
              "{user.email}",
              "{user.phone}",
              "{user.birthday}",
              "{user.status}",
+             "{user.role}",
              "{user.password}")
         """
         self.database.exec_query_with_commit(query)
@@ -31,7 +32,8 @@ class UserRepository:
             email = "{user.email}",
             telephone = "{user.phone}",
             date_naissance = "{user.birthday}",
-            statut = "{user.status}"
+            statut = "{user.status}",
+            role = "{user.role}"
           WHERE id_utilisateurs = {user.id}
         """
         self.database.exec_query_with_commit(query)
