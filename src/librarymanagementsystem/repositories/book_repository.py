@@ -18,6 +18,7 @@ class BookRepository:
         self.database = database
 
     def read_all(self, filter_type="all", filter_text=""):
+        print(f"Read all books filter_type: {filter_type}, filter_text: {filter_text}")
         query = ""
         if filter_type == ALL_BOOKS:
             query = """
@@ -30,6 +31,7 @@ class BookRepository:
                 l.date_publication AS 'Date publication',
                 e.date_emprunt AS 'Date emprunt',
                 e.id_utilisateurs as 'Emprunté par',
+                ue.nom AS Utilisateur,
                 e.date_retour AS 'Date retour',
                 l.date_creation AS 'Date création',
                 l.cree_par AS 'Créé par',
@@ -54,6 +56,7 @@ class BookRepository:
                 modifie m ON m.id_livres = l.id_livres
                     LEFT JOIN
                 utilisateurs u ON u.id_utilisateurs = m.id_utilisateurs
+            LEFT JOIN utilisateurs ue ON ue.id_utilisateurs = e.id_utilisateurs
             WHERE l.date_suppression IS NULL
             GROUP BY l.id_livres;
           """
@@ -346,7 +349,7 @@ class BookRepository:
         """
         self.database.exec_query_with_commit(query)
 
-    def return_book(self, book_id, user_id):
+    def return_book(self, book_id: int, user_id: int):
         query = f"""
           UPDATE emprunts
           SET date_retour = CURDATE()
