@@ -67,6 +67,8 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
+        if self.__filtered_data.empty:
+            return
 
         # Sort data based on the column
         self.__filtered_data.sort_values(
