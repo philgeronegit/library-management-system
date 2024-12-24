@@ -31,7 +31,7 @@ class Database:
                 return result_dataFrame
         except Exception as e:
             print("Erreur lors de la lecture de la table {}".format(e))
-            return pd.DataFrame([], columns=columns)
+            return pd.DataFrame([], columns=[])
 
     def exec_query_with_commit(self, query: str):
         try:
