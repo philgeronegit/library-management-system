@@ -29,7 +29,7 @@ class AuthorController:
         self.read_all()
 
     def modify(self):
-        """Modify a quthor from the list"""
+        """Modify a author from the list"""
         author = self.get_selected_author()
         if author is None:
             return
