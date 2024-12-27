@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import QDialog, QMessageBox
 from librarymanagementsystem.entities.user import User
 from librarymanagementsystem.managers.user_manager import UserManager
 from librarymanagementsystem.utils.constants import (
-    USER_ROLE_ADMIN,
     USER_STATUS_ACTIF,
     USER_STATUS_EN_ATTENTE,
     USER_STATUS_INACTIF,
@@ -82,7 +81,7 @@ class LoginController:
                     "1990-01-01",
                     USER_STATUS_ACTIF,
                     password,
-                    role=USER_ROLE_ADMIN,
+                    is_admin=True,
                 )
                 self.login_as_user(user)
                 return
@@ -94,7 +93,7 @@ class LoginController:
                 )
             else:
                 hashed_password = user.iloc[0]["hash_mot_passe"]
-                if not bcrypt.checkpw(
+                if len(hashed_password) > 0 and not bcrypt.checkpw(
                     password.encode("utf-8"), hashed_password.encode("utf-8")
                 ):
                     QMessageBox.information(
@@ -112,8 +111,8 @@ class LoginController:
                             user.iloc[0]["date_naissance"],
                             user.iloc[0]["statut"],
                             user.iloc[0]["hash_mot_passe"],
-                            user.iloc[0]["id_utilisateurs"],
-                            user.iloc[0]["role"],
+                            id=user.iloc[0]["id_utilisateurs"],
+                            is_admin=user.iloc[0]["is_admin"],
                         )
                         self.login_as_user(user)
                     elif status == USER_STATUS_INACTIF:
@@ -129,14 +128,18 @@ class LoginController:
                             "Utilisateur en attente",
                         )
 
+    def get_user_role(self, user: User) -> str:
+        """Get the role of the user"""
+        return "Admin" if user.is_admin else "Utilisateur"
+
     def login_as_user(self, user: User):
         """Login as a user"""
         if user is not None:
             self.view.statusBar().showMessage(
-                f"Connecté en tant que {user.username} ({user.role})"
+                f"Connecté en tant que {user.username} ({self.get_user_role(user)})"
             )
             self.view.setWindowTitle(
-                f"Librairie - Connecté en tant que : {user.username} ({user.role})"
+                f"Librairie - Connecté en tant que : {user.username} ({self.get_user_role(user)})"
             )
         self.selected_user = user
         self.view.update_user_actions(user)

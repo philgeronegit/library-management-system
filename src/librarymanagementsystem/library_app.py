@@ -39,6 +39,7 @@ class LibraryApp:
             user_manager, self.view, self.dialog_manager
         )
         self.login_controller = LoginController(user_manager, self.view)
+        self.borrow_rules_controller = BorrowRulesController(self.database, self.view)
         self.book_controller = BookController(
             self.database,
             self.view,
@@ -46,9 +47,9 @@ class LibraryApp:
             self.genre_controller,
             self.user_controller,
             self.login_controller,
+            self.borrow_rules_controller,
             self.dialog_manager,
         )
-        self.borrow_rules_controller = BorrowRulesController(self.database, self.view)
 
         user = None
         if self.role == USER_ROLE_ADMIN:
@@ -60,9 +61,9 @@ class LibraryApp:
                 USER_STATUS_ACTIF,
                 "admin",
                 id=5,
-                role=USER_ROLE_ADMIN,
+                is_admin=True,
             )
-        elif self.role == "user":
+        elif self.role == USER_ROLE_USER:
             user = User(
                 "John Doe",
                 "john.doe@gmail.com",
@@ -71,7 +72,7 @@ class LibraryApp:
                 USER_STATUS_ACTIF,
                 "john",
                 id=1,
-                role=USER_ROLE_USER,
+                is_admin=False,
             )
         self.login_controller.login_as_user(user)
         self.controllers = [
@@ -100,7 +101,7 @@ class LibraryApp:
         has_selection = self.view.books_table.selectionModel().hasSelection()
         is_admin = (
             self.login_controller.selected_user
-            and self.login_controller.selected_user.role == USER_ROLE_ADMIN
+            and self.login_controller.selected_user.is_admin
         )
         self.view.borrow_action.setEnabled(has_selection)
         self.view.restore_action.setEnabled(has_selection)
@@ -140,10 +141,10 @@ class LibraryApp:
                     self.user_controller.users_model.index(row, 1),
                     Qt.ItemDataRole.DisplayRole,
                 )
-                role = get_column_index_by_name(
-                    self.user_controller.users_model, "role"
+                is_admin = get_column_index_by_name(
+                    self.user_controller.users_model, "is_admin"
                 )
-                if role != USER_ROLE_ADMIN:
+                if not is_admin:
                     self.view.user_combo_box.addItem(name, id)
 
         if self.author_controller.authors_model is not None:
@@ -163,20 +164,20 @@ class LibraryApp:
             )
 
         if (
-            self.borrow_rules_controller.duree_maximale_emprunt is not None
-            and self.borrow_rules_controller.penalite_retard is not None
+            self.borrow_rules_controller.max_borrow_days is not None
+            and self.borrow_rules_controller.late_penalty is not None
         ):
-            self.view.duree_maximale_emprunt_input.setText(
-                str(self.borrow_rules_controller.duree_maximale_emprunt)
+            self.view.max_borrow_days_input.setText(
+                str(self.borrow_rules_controller.max_borrow_days)
             )
             self.view.penalite_retard_input.setText(
-                str(self.borrow_rules_controller.penalite_retard)
+                str(self.borrow_rules_controller.late_penalty)
             )
 
     def delete_selected_item(self, name: str, index: int):
         """Delete the selected item from the table"""
         if name == "books":
-            self.book_controller.delete(self.login_controller.selected_user.id)
+            self.book_controller.delete()
         elif name == "genres":
             self.genre_controller.delete()
         elif name == "authors":
@@ -186,7 +187,7 @@ class LibraryApp:
 
     def add_item(self, name: str):
         if name == "books":
-            self.book_controller.add(self.login_controller.selected_user.id)
+            self.book_controller.add()
         elif name == "genres":
             self.genre_controller.add()
         elif name == "authors":
@@ -200,7 +201,7 @@ class LibraryApp:
 
     def modify_selected_item(self, name: str, index: int):
         if name == "books":
-            self.book_controller.modify(self.login_controller.selected_user.id)
+            self.book_controller.modify()
         elif name == "genres":
             self.genre_controller.modify()
         elif name == "authors":

@@ -1,8 +1,9 @@
 from librarymanagementsystem.entities.author import Author
+from librarymanagementsystem.repositories.abstract_repository import AbstractRepository
 from librarymanagementsystem.repositories.database import Database
 
 
-class AuthorRepository:
+class AuthorRepository(AbstractRepository):
     def __init__(self, database: Database):
         self.database = database
 

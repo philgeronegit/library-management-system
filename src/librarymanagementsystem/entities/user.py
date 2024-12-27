@@ -11,7 +11,7 @@ class User:
         status: str,
         password: str,
         id: int = None,
-        role: str = "user",
+        is_admin: bool = False,
     ):
         self.id = id or int(uuid.uuid4())
         self.username = username
@@ -20,7 +20,8 @@ class User:
         self.birthday = birthday
         self.status = status
         self.password = password
-        self.role = role
+        print(f"User {self.username} created with id {self.id} id_admin {is_admin}")
+        self.is_admin = is_admin
 
     def __str__(self):
         return f"User(username={self.username}, contact={self.email}, status={self.status}, password={self.password})"

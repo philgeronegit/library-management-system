@@ -1,6 +1,7 @@
 import sqlalchemy
 
 from librarymanagementsystem.entities.book import Book
+from librarymanagementsystem.repositories.abstract_repository import AbstractRepository
 from librarymanagementsystem.repositories.database import Database
 from librarymanagementsystem.utils.constants import (
     ALL_BOOKS,
@@ -13,7 +14,7 @@ from librarymanagementsystem.utils.constants import (
 )
 
 
-class BookRepository:
+class BookRepository(AbstractRepository):
     def __init__(self, database: Database):
         self.database = database
 
@@ -233,9 +234,9 @@ class BookRepository:
                           e.date_retour AS 'Date retour',
                           u.nom AS Utilisateur,
                           l.date_suppression AS 'Date suppression',
-                          rp.duree_maximale_emprunt AS Max,
+                          rp.duree_maximale AS Max,
                           CURDATE() AS Now,
-                          DATE_ADD(e.date_emprunt, INTERVAL rp.duree_maximale_emprunt DAY) AS Limite,
+                          DATE_ADD(e.date_emprunt, INTERVAL rp.duree_maximale DAY) AS Limite,
                           CASE
                               WHEN
                                   e.date_emprunt IS NULL
@@ -250,7 +251,7 @@ class BookRepository:
                               WHEN
                                   e.date_emprunt IS NOT NULL
                                       AND e.date_retour IS NULL
-                                      AND DATE_ADD(e.date_emprunt, INTERVAL rp.duree_maximale_emprunt DAY) < CURDATE()
+                                      AND DATE_ADD(e.date_emprunt, INTERVAL rp.duree_maximale DAY) < CURDATE()
                               THEN
                                   'En retard'
                               ELSE 'En cours'
@@ -278,7 +279,7 @@ class BookRepository:
           INSERT INTO livres
             (titre, date_publication, id_genres, date_creation, cree_par)
           VALUES
-            ('{book.title}', '{book.publication_date}', {book.genre.id}, CURTIME(), '{user_id}')
+            ('{book.title}', '{book.publication_date}', {book.genre.id}, CURTIME(), {user_id})
         """
         try:
             engine = self.database.getEngine()
@@ -340,12 +341,12 @@ class BookRepository:
         queries = [delete_livre_query, delete_emprunts_query, delete_reservations_query]
         self.database.exec_queries_with_commit(queries)
 
-    def borrow_book(self, book_id, user_id):
+    def borrow_book(self, book_id: int, user_id: int, borrow_rules_id: int):
         query = f"""
           INSERT INTO emprunts
-            (date_emprunt, id_livres, id_utilisateurs)
+            (date_emprunt, id_livres, id_utilisateurs, id_regles_prets)
           VALUES
-            (CURDATE(), '{book_id}', {user_id})
+            (CURDATE(), {book_id}, {user_id}, {borrow_rules_id})
         """
         self.database.exec_query_with_commit(query)
 

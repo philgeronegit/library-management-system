@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QRadioButton,
     QStatusBar,
@@ -26,7 +27,6 @@ from librarymanagementsystem.utils.constants import (
     BORROWED_BOOKS,
     DELETED_BOOKS,
     LATE_BOOKS,
-    USER_ROLE_ADMIN,
 )
 from librarymanagementsystem.views.components.clearable_line_edit import (
     ClearableLineEdit,
@@ -121,10 +121,10 @@ class LibraryView(QMainWindow):
         self.borrow_rules_tab_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         form_layout = QFormLayout()
         self.borrow_rules_tab_layout.addLayout(form_layout)
-        users_filter_label, self.duree_maximale_emprunt_input = input_factory(
+        users_filter_label, self.max_borrow_days_input = input_factory(
             "Durée maximale emprunt :"
         )
-        form_layout.addRow(users_filter_label, self.duree_maximale_emprunt_input)
+        form_layout.addRow(users_filter_label, self.max_borrow_days_input)
         users_filter_label, self.penalite_retard_input = input_factory(
             "Pénalité de retard :"
         )
@@ -264,7 +264,7 @@ class LibraryView(QMainWindow):
         self.login_action.setEnabled(False)
         self.logout_action.setEnabled(True)
 
-        if user.role == USER_ROLE_ADMIN:
+        if user.is_admin:
             self.author_menu.setEnabled(True)
             self.genre_menu.setEnabled(True)
             self.user_add_action.setVisible(True)
@@ -360,14 +360,17 @@ class LibraryView(QMainWindow):
         self.reserve_action.triggered.connect(
             self.library_app.book_controller.reserve_book
         )
-        self.save_regles_prets_button.clicked.connect(
-            self.library_app.borrow_rules_controller.save_regles_prets_clicked
-        )
+        self.save_regles_prets_button.clicked.connect(self.borrow_rules_clicked)
         self.user_combo_box.currentIndexChanged.connect(
             self.library_app.book_controller.user_combo_box_changed
         )
         for table in self.table_views:
             table.connect_signals()
+
+    def borrow_rules_clicked(self):
+        self.library_app.borrow_rules_controller.borrow_rules_clicked()
+        self.library_app.book_controller.read_all()
+        QMessageBox.information(self, "Succès", "Règles de prêts sauvegardées.")
 
     #############################
     # Debounce search functions #

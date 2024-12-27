@@ -1,8 +1,9 @@
 from librarymanagementsystem.entities.genre import Genre
+from librarymanagementsystem.repositories.abstract_repository import AbstractRepository
 from librarymanagementsystem.repositories.database import Database
 
 
-class GenreRepository:
+class GenreRepository(AbstractRepository):
     def __init__(self, database: Database):
         self.database = database
 
