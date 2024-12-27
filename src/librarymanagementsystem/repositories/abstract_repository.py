@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class AbstractRepository(ABC):
     @abstractmethod
-    def get_all(self, filter_type: str = None, filter_text: str = None):
+    def read_all(self, filter_type: str = None, filter_text: str = None):
         pass
 
     @abstractmethod

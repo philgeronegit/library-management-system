@@ -7,7 +7,7 @@ from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.managers.book_manager import BookManager
 from librarymanagementsystem.managers.loan_manager import LoanManager
 from librarymanagementsystem.repositories.database import Database
-from librarymanagementsystem.utils.constants import BORROWED_BOOKS, USER_ROLE_ADMIN
+from librarymanagementsystem.utils.constants import BORROWED_BOOKS
 from librarymanagementsystem.utils.selection import (
     get_column_index_by_name,
     get_integer_value,
@@ -27,6 +27,7 @@ class BookController:
         genre_controller,
         user_controller,
         login_controller,
+        borrow_rules_controller,
         dialog_manager,
     ):
         self.filter_type = "all"
@@ -39,6 +40,7 @@ class BookController:
         self.genre_controller = genre_controller
         self.user_controller = user_controller
         self.login_controller = login_controller
+        self.borrow_rules_controller = borrow_rules_controller
         self.dialog_manager = dialog_manager
 
     def filter_change(self, type: str):
@@ -48,7 +50,7 @@ class BookController:
             user_id = ""
             if self.login_controller.selected_user is None:
                 user_id = ""
-            elif self.login_controller.selected_user.role != USER_ROLE_ADMIN:
+            elif not self.login_controller.selected_user.is_admin:
                 user_id = self.login_controller.selected_user.id
             self.read_all(type, user_id)
         else:
@@ -79,8 +81,9 @@ class BookController:
         self.update_viewport_books()
         self.show_books_number()
 
-    def delete(self, user_id: int):
+    def delete(self):
         """Delete a book from the list"""
+        user_id = self.login_controller.selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -205,8 +208,9 @@ class BookController:
             self.genre_controller.genres_model,
         )
 
-    def modify(self, user_id: int):
+    def modify(self):
         """Modify a book from the list"""
+        user_id = self.login_controller.selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -232,8 +236,7 @@ class BookController:
     def borrow_book(self):
         """Borrow a book from the list"""
         selected_user = self.login_controller.selected_user
-        print(f"Selectedd user {selected_user}")
-        if selected_user is None or selected_user.role == USER_ROLE_ADMIN:
+        if selected_user is None or selected_user.is_admin:
             QMessageBox.information(
                 self.view,
                 "Utilisateur",
@@ -242,6 +245,7 @@ class BookController:
             return
 
         user_id = selected_user.id
+        borrow_rules_id = self.borrow_rules_controller.borrow_rules_id
         book = self.get_selected_book()
         if book is None:
             return
@@ -254,7 +258,7 @@ class BookController:
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            self.loan_manager.borrow_book(book.id, user_id)
+            self.loan_manager.borrow_book(book.id, user_id, borrow_rules_id)
             self.read_all()
 
     def restore_book(self):
@@ -298,8 +302,9 @@ class BookController:
         if button == QMessageBox.StandardButton.Yes:
             print("Livre réservé")
 
-    def add(self, user_id: int):
+    def add(self):
         """Add a new book to the list"""
+        user_id = self.login_controller.selected_user.id
         book_data = self.dialog_manager.add_book(
             self.author_controller.authors_model, self.genre_controller.genres_model
         )
