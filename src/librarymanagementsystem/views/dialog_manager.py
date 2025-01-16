@@ -5,6 +5,7 @@ from librarymanagementsystem.entities.author import Author
 from librarymanagementsystem.entities.book import Book
 from librarymanagementsystem.entities.genre import Genre
 from librarymanagementsystem.entities.user import User
+from librarymanagementsystem.utils.constants import USER_ROLE_ADMIN
 from librarymanagementsystem.views.author_dialog import AuthorDialog
 from librarymanagementsystem.views.book_dialog import BookDialog
 from librarymanagementsystem.views.book_info import BookInfo
@@ -49,7 +50,7 @@ class DialogManager:
                 data["birthday"],
                 data["status"],
                 hashed_password,
-                role=data["role"],
+                is_admin=data["role"] == USER_ROLE_ADMIN,
             )
         return None
 
@@ -126,7 +127,7 @@ class DialogManager:
                 data["status"],
                 hashed_password,
                 id=user.id,
-                role=data["role"],
+                is_admin=data["role"] == USER_ROLE_ADMIN,
             )
         return None
 
