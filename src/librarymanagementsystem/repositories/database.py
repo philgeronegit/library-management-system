@@ -15,7 +15,7 @@ class Database:
         self.password = os.getenv("PASSWORD")
 
     def getEngine(self) -> sqlalchemy.engine.base.Connection:
-        connection_string = f"mysql+pymysql://{self.user}:{self.password if self.password is not None else ""}@{self.host}/{self.database}"
+        connection_string = f"mysql+pymysql://{self.user}:{self.password or ''}@{self.host}/{self.database}"
         return sqlalchemy.create_engine(connection_string, echo=False)
 
     def exec_query(self, query: str) -> pd.DataFrame:
