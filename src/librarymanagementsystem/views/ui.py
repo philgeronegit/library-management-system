@@ -172,6 +172,7 @@ class LibraryView(QMainWindow):
 
         self.table_views = []
         self.books_table = CustomTableViewBook("books", self.library_app)
+        self.books_table.row_selected.connect(self.on_row_selected)
         self.table_views.append(self.books_table)
         self.livres_tab_layout.addWidget(self.books_table)
 
@@ -198,6 +199,11 @@ class LibraryView(QMainWindow):
 
         # Connect the textChanged signal to restart the timer
         self.search_input.textChanged.connect(self.restart_search_timer)
+
+    def on_row_selected(self, name, row):
+        print(f"Table {name} Row {row} selected")
+        if name == "books":
+            self.library_app.book_controller.set_selected_book(row)
 
     def handle_radio_button_toggled(self):
         rbtn = self.sender()
@@ -259,6 +265,7 @@ class LibraryView(QMainWindow):
                 if table.name == "books":
                     table.borrow_action.setEnabled(False)
                     table.restore_action.setEnabled(False)
+                    table.reserve_action.setEnabled(False)
             return
 
         self.login_action.setEnabled(False)
@@ -284,8 +291,9 @@ class LibraryView(QMainWindow):
                 table.modify_action.setEnabled(True)
                 table.delete_action.setEnabled(True)
                 if table.name == "books":
-                    table.borrow_action.setEnabled(True)
-                    table.restore_action.setEnabled(True)
+                    table.borrow_action.setEnabled(False)
+                    table.restore_action.setEnabled(False)
+                    table.reserve_action.setEnabled(False)
         else:
             self.author_menu.setEnabled(False)
             self.genre_menu.setEnabled(False)
@@ -308,6 +316,7 @@ class LibraryView(QMainWindow):
                 if table.name == "books":
                     table.borrow_action.setEnabled(True)
                     table.restore_action.setEnabled(True)
+                    table.reserve_action.setEnabled(True)
 
     def create_toolbar(self):
         toolbar = QToolBar("Main Toolbar")
