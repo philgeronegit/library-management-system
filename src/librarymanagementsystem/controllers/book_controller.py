@@ -43,6 +43,8 @@ class BookController:
         self.borrow_rules_controller = borrow_rules_controller
         self.dialog_manager = dialog_manager
 
+        self.selected_book = None
+
     def filter_change(self, type: str):
         print(f"Filter change {type}")
         self.filter_type = type
@@ -99,59 +101,57 @@ class BookController:
         if indexes is None:
             return None
 
-        selected_book = None
+        self.selected_book = None
 
         for index in indexes:
             if index.isValid():
                 row = index.row()
-                role = Qt.ItemDataRole.DisplayRole
-
-                books_model = self.books_model
-                id = books_model.data(books_model.index(row, 0), role)
-                title = books_model.data(books_model.index(row, 1), role)
-                publication_date = books_model.data(books_model.index(row, 4), role)
-                index = get_column_index_by_name(books_model, "ID auteurs")
-                author_ids = books_model.data(
-                    books_model.index(row, index), role
-                ).split(",")
-                author_ids = [int(auteur_id) for auteur_id in author_ids]
-
-                genre_id = get_model_data(books_model, row, "ID genre")
-                borrowed_date = get_model_data(books_model, row, "Date emprunt")
-                borrowed_by = get_integer_value(
-                    get_model_data(books_model, row, "Emprunté par")
-                )
-                return_date = get_model_data(books_model, row, "Date retour")
-                creation_date = get_model_data(books_model, row, "Date création")
-                created_by = get_model_data(books_model, row, "Créé par")
-                modification_date = get_model_data(
-                    books_model, row, "Date modification"
-                )
-                modified_by = get_model_data(books_model, row, "Modifié par")
-                deletion_date = get_model_data(books_model, row, "Date suppression")
-                deleted_by = get_integer_value(
-                    get_model_data(books_model, row, "Supprimé par")
-                )
-
-                selected_book = self.create_book(
-                    title,
-                    author_ids,
-                    genre_id,
-                    publication_date,
-                    id=int(id),
-                    borrowed_date=borrowed_date,
-                    borrowed_by=borrowed_by,
-                    return_date=return_date,
-                    creation_date=creation_date,
-                    created_by=created_by,
-                    modification_date=modification_date,
-                    modified_by=modified_by,
-                    deletion_date=deletion_date,
-                    deleted_by=deleted_by,
-                )
+                self.set_selected_book(row)
                 break
 
-        return selected_book
+        return self.selected_book
+
+    def set_selected_book(self, row: int) -> Book | None:
+        print(f"set_selected_book Row {row}")
+        role = Qt.ItemDataRole.DisplayRole
+
+        books_model = self.books_model
+        id = books_model.data(books_model.index(row, 0), role)
+        title = books_model.data(books_model.index(row, 1), role)
+        publication_date = books_model.data(books_model.index(row, 4), role)
+        index = get_column_index_by_name(books_model, "ID auteurs")
+        author_ids = books_model.data(books_model.index(row, index), role).split(",")
+        author_ids = [int(auteur_id) for auteur_id in author_ids]
+
+        genre_id = get_model_data(books_model, row, "ID genre")
+        borrowed_date = get_model_data(books_model, row, "Date emprunt")
+        borrowed_by = get_integer_value(
+            get_model_data(books_model, row, "Emprunté par")
+        )
+        return_date = get_model_data(books_model, row, "Date retour")
+        creation_date = get_model_data(books_model, row, "Date création")
+        created_by = get_model_data(books_model, row, "Créé par")
+        modification_date = get_model_data(books_model, row, "Date modification")
+        modified_by = get_model_data(books_model, row, "Modifié par")
+        deletion_date = get_model_data(books_model, row, "Date suppression")
+        deleted_by = get_integer_value(get_model_data(books_model, row, "Supprimé par"))
+
+        self.selected_book = self.create_book(
+            title,
+            author_ids,
+            genre_id,
+            publication_date,
+            id=int(id),
+            borrowed_date=borrowed_date,
+            borrowed_by=borrowed_by,
+            return_date=return_date,
+            creation_date=creation_date,
+            created_by=created_by,
+            modification_date=modification_date,
+            modified_by=modified_by,
+            deletion_date=deletion_date,
+            deleted_by=deleted_by,
+        )
 
     def create_book(
         self,
@@ -175,10 +175,11 @@ class BookController:
             author = self.author_controller.find_author(int(author_id))
             authors.append(author)
         genre = self.genre_controller.find_genre(int(genre_id))
-        created_by_user = self.user_controller.find_user(created_by)
-        modified_by_user = self.user_controller.find_user(modified_by)
-        deleted_by_user = self.user_controller.find_user(deleted_by)
-        borrowed_by_user = self.user_controller.find_user(borrowed_by)
+        created_by = self.user_controller.find_user(created_by)
+        modified_by = self.user_controller.find_user(modified_by)
+        deleted_by = self.user_controller.find_user(deleted_by)
+        borrowed_by = self.user_controller.find_user(borrowed_by)
+        reserved_by = self.user_controller.find_user(borrowed_by)
         return Book(
             title,
             authors,
@@ -186,14 +187,15 @@ class BookController:
             publication_date,
             id=id,
             borrowing_date=borrowed_date,
-            borrowing_user=borrowed_by_user,
+            borrowed_by=borrowed_by,
+            reserved_by=reserved_by,
             return_date=return_date,
             creation_date=creation_date,
-            added_by=created_by_user,
+            added_by=created_by,
             modification_date=modification_date,
-            modified_by=modified_by_user,
+            modified_by=modified_by,
             deletion_date=deletion_date,
-            deleted_by=deleted_by_user,
+            deleted_by=deleted_by,
         )
 
     def show_book_info(self):
@@ -253,7 +255,7 @@ class BookController:
         button = QMessageBox.question(
             self.view,
             "Emprunter ce livre",
-            f"Etes-vous sûr de vouloir emprunter ce livre {book.title} ?",
+            f"Etes-vous sûr de vouloir emprunter ce livre '{book.title}' ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
@@ -279,15 +281,25 @@ class BookController:
         button = QMessageBox.question(
             self.view,
             "Rendre ce livre",
-            f"Etes-vous sûr de vouloir rendre ce livre {book.title} ?",
+            f"Etes-vous sûr de vouloir rendre ce livre '{book.title}' ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            self.loan_manager.return_book(book.id, book.borrowing_user.id)
+            self.loan_manager.return_book(book.id, book.borrowed_by.id)
             self.read_all()
 
     def reserve_book(self):
+        selected_user = self.login_controller.selected_user
+        if selected_user is None or selected_user.is_admin:
+            QMessageBox.information(
+                self.view,
+                "Utilisateur",
+                "Veuillez vous connecter en tant qu'utilisateur",
+            )
+            return
+
+        user_id = selected_user.id
         book = self.get_selected_book()
         if book is None:
             return
@@ -295,12 +307,13 @@ class BookController:
         button = QMessageBox.question(
             self.view,
             "Réserver ce livre",
-            f"Etes-vous sûr de vouloir réserver ce livre {book}?",
+            f"Etes-vous sûr de vouloir réserver ce livre '{book}' ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if button == QMessageBox.StandardButton.Yes:
-            print("Livre réservé")
+            self.loan_manager.reserve_book(book.id, user_id)
+            self.read_all()
 
     def add(self):
         """Add a new book to the list"""

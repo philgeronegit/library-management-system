@@ -14,7 +14,9 @@ class Book:
         genre: Genre,
         publication_date: datetime,
         borrowing_date: datetime = None,
-        borrowing_user: User = None,
+        borrowed_by: User = None,
+        reserving_date: datetime = None,
+        reserved_by: User = None,
         return_date: datetime = None,
         creation_date: datetime = None,
         added_by: User = None,
@@ -30,7 +32,7 @@ class Book:
         self.genre = genre
         self.publication_date = publication_date
         self.borrowing_date = borrowing_date
-        self.borrowing_user = borrowing_user
+        self.borrowed_by = borrowed_by
         self.return_date = return_date
         self.creation_date = creation_date
         self.added_by = added_by

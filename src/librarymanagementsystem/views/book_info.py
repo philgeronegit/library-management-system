@@ -53,6 +53,10 @@ class BookInfo(QDialog):
         self.publication_date_input.setEnabled(False)
         self.form_layout.addRow(label, self.publication_date_input)
 
+        label, self.borrowed_by_input = input_factory("Emprunté par :")
+        self.borrowed_by_input.setEnabled(False)
+        self.form_layout.addRow(label, self.borrowed_by_input)
+
         label, self.creation_date_input = input_factory("Date création :")
         self.creation_date_input.setEnabled(False)
         self.form_layout.addRow(label, self.creation_date_input)
@@ -97,6 +101,8 @@ class BookInfo(QDialog):
                 self.creation_by_input.setText(book.added_by.username)
             self.modification_date_input.setText(book.modification_date)
             self.deletion_date_input.setText(book.deletion_date)
+            if book.borrowed_by is not None:
+                self.borrowed_by_input.setText(book.borrowed_by.username)
             if book.modified_by is not None:
                 self.modification_by_input.setText(book.modified_by.username)
             if book.deleted_by is not None:
