@@ -1,16 +1,25 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QMenu, QTableView
 
 
 class CustomTableView(QTableView):
+    row_selected = pyqtSignal(str, int)  # Define a custom signal
+
     def __init__(self, name: str, app, parent=None):
         super().__init__(parent)
         self.app = app
         self.name = name
+        self.selected_user = None
 
         self.create_ui()
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+
+    def on_selection_changed(self):
+        indexes = self.selectionModel().selectedRows()
+        if indexes:
+            row = indexes[0].row()
+            self.row_selected.emit(self.name, row)
 
     def create_ui(self):
         self.menu = QMenu()
@@ -35,6 +44,9 @@ class CustomTableView(QTableView):
         if not index.isValid():
             return
 
+        print(f"SHOW CONTEXT MENU Index: {index.row()}")
+        print(f"Username: {self.app.login_controller.selected_user}")
+        self.selected_user = self.app.login_controller.selected_user
         self.modify_action.triggered.disconnect()
         self.modify_action.triggered.connect(lambda: self.modify_clicked(index))
         self.delete_action.triggered.disconnect()
@@ -77,10 +89,20 @@ class CustomTableViewBook(CustomTableView):
         self.restore_action.setEnabled(False)
         self.menu.addAction(self.restore_action)
 
+        self.reserve_action = QAction("Réserver", self)
+        self.reserve_action.setEnabled(False)
+        self.menu.addAction(self.reserve_action)
+
     def connect_signals(self):
         super().connect_signals()
         self.borrow_action.triggered.connect(self.app.book_controller.borrow_book)
         self.restore_action.triggered.connect(self.app.book_controller.restore_book)
+        self.reserve_action.triggered.connect(self.app.book_controller.reserve_book)
+
+    def show_context_menu(self, position):
+        super().show_context_menu(position)
+        print("SHOW CONTEXT MENU BOOK")
+        print(f"Username BOOK: {self.app.login_controller.selected_user}")
 
 
 class CustomTableViewUser(CustomTableView):
