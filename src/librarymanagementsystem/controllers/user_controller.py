@@ -68,6 +68,7 @@ class UserController:
         birthday = user_df["date_naissance"].values[0]
         status = user_df["statut"].values[0]
         password = user_df["hash_mot_passe"].values[0]
+        is_admin = user_df["is_admin"].values[0]
         user = User(
             name,
             email,
@@ -75,7 +76,8 @@ class UserController:
             birthday,
             status,
             password,
-            id,
+            id=id,
+            is_admin=is_admin,
         )
         return user
 
@@ -100,9 +102,16 @@ class UserController:
                 phone = users_model.data(users_model.index(row, 4), role)
                 birthday = users_model.data(users_model.index(row, 5), role)
                 status = users_model.data(users_model.index(row, 6), role)
-                role = users_model.data(users_model.index(row, 7), role)
+                is_admin = users_model.data(users_model.index(row, 7), role)
                 selected_user = User(
-                    name, email, phone, birthday, status, password, id=id, role=role
+                    name,
+                    email,
+                    phone,
+                    birthday,
+                    status,
+                    password,
+                    id=id,
+                    is_admin=is_admin,
                 )
                 break
 

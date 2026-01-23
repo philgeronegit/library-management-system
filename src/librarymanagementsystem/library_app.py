@@ -121,6 +121,9 @@ class LibraryApp:
             table_view.setColumnHidden(index, True)
         table_view.verticalHeader().setVisible(False)
         table_view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        table_view.selectionModel().selectionChanged.connect(
+            table_view.on_selection_changed
+        )
 
     def setup_ui(self):
         if self.user_controller.users_model is not None:

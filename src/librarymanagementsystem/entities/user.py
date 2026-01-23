@@ -24,7 +24,13 @@ class User:
         self.is_admin = is_admin
 
     def __str__(self):
-        return f"User(username={self.username}, contact={self.email}, status={self.status}, password={self.password})"
+        return f"""
+          User(username={self.username},
+          contact={self.email},
+          status={self.status},
+          password={self.password})
+          is_admin={self.is_admin}
+        """
 
     @staticmethod
     def headers() -> list[str]:

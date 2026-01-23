@@ -92,12 +92,12 @@ class UserDialog(QDialog):
         name = self.name_input.text().strip()
         email = self.email_input.text().strip()
         is_email = "@" in email and "." in email
-        phone = self.phone_input.text().strip()
-        is_phone = phone.startswith("+") and len(phone) >= 3
-        password = self.password_input.text().strip()
+        is_password = True
+        if self.user is not None:
+            is_password = len(self.password_input.text().strip()) >= 3
 
         # Enable the Add button only if all fields are not empty and valid
-        if name and is_email and is_phone and password and len(password) >= 3:
+        if name and is_email and is_password:
             self.add_button.setEnabled(True)
         else:
             self.add_button.setEnabled(False)
@@ -109,15 +109,12 @@ class UserDialog(QDialog):
         self.phone_input.setText(user.phone)
         self.birth_date_input.setText(user.birthday)
         self.status_combo_box.setCurrentText(user.status)
-        self.role_combo_box.setCurrentText(user.role)
+        role = USER_ROLE_ADMIN if user.is_admin == 1 else USER_ROLE_USER
+        self.role_combo_box.setCurrentText(role)
         self.password_input.setText(user.password)
         self.validate_inputs()
 
         if user is not None:
-            self.setWindowTitle("Modifier utilisateur")
-            self.add_button.setText("Modifier")
-            self.password_label.setVisible(False)
-            self.password_input.setVisible(False)
             self.setWindowTitle("Modifier utilisateur")
             self.add_button.setText("Modifier")
             self.password_label.setVisible(False)

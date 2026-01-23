@@ -46,14 +46,39 @@ pip install -r requirements.txt
 4. Set up the database:
 
 - Ensure you have MySQL installed and running.
-- Create a database named bibliotheque.
-- Update the .env file with your database credentials.
+- Create a database named `bibliotheque`.
+- Use the provided SQL files to set up the database schema and import initial data:
+  - Run `src/sql/create_database.sql` to create the database tables and relationships.
+  - Run `src/sql/import data.sql` to insert sample data into the tables.
+- Update the `.env` file with your database credentials (e.g., host, user, password).
 
 1. Run the application:
 
 ```sh
 python src/main.py
 ```
+
+## Testing
+
+The project includes unit tests for controllers, managers, and repositories using Pytest.
+
+To run the tests:
+
+1. Ensure all dependencies are installed (including pytest):
+
+```sh
+pip install -r requirements.txt
+```
+
+2. Run the tests from the project root:
+
+```sh
+python -m pytest
+```
+
+Note: If `pytest` command is not available, use `python -m pytest` to run tests with the current Python environment's pytest module.
+
+The tests are located in `src/tests/` and cover unit tests for the core components.
 
 ## Usage
 

@@ -11,3 +11,6 @@ class LoanManager:
 
     def return_book(self, book_id: int, user_id: int):
         self.book_repository.return_book(book_id, user_id)
+
+    def reserve_book(self, book_id: int, user_id: int):
+        self.book_repository.reserve_book(book_id, user_id)
