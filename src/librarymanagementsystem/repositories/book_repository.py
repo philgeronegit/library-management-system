@@ -279,7 +279,8 @@ class BookRepository(AbstractRepository):
           INSERT INTO livres
             (titre, date_publication, id_genres, date_creation, cree_par)
           VALUES
-            ('{book.title}', '{book.publication_date}', {book.genre.id}, CURTIME(), {user_id})
+            ("{book.title}", "{book.publication_date}",
+            {book.genre.id}, CURTIME(), {user_id})
         """
         try:
             engine = self.database.getEngine()
@@ -312,7 +313,9 @@ class BookRepository(AbstractRepository):
         """
         update_book_query = f"""
           UPDATE livres
-          SET titre = '{book.title}', date_publication = '{book.publication_date}', id_genres = {book.genre.id}
+          SET titre = "{book.title}",
+            date_publication = "{book.publication_date}",
+            id_genres = {book.genre.id}
           WHERE id_livres = {book.id}
         """
         queries = [modifie_livre_query, delete_authors_query, update_book_query]
@@ -341,6 +344,15 @@ class BookRepository(AbstractRepository):
         queries = [delete_livre_query, delete_emprunts_query, delete_reservations_query]
         self.database.exec_queries_with_commit(queries)
 
+    def reserve_book(self, book_id: int, user_id: int):
+        query = f"""
+          INSERT INTO reservations
+            (date_reservation, id_livres, id_utilisateurs)
+          VALUES
+            (CURDATE(), {book_id}, {user_id})
+        """
+        self.database.exec_query_with_commit(query)
+
     def borrow_book(self, book_id: int, user_id: int, borrow_rules_id: int):
         query = f"""
           INSERT INTO emprunts
@@ -356,12 +368,4 @@ class BookRepository(AbstractRepository):
           SET date_retour = CURDATE()
           WHERE id_livres = {book_id} AND id_utilisateurs = {user_id}
         """
-        print("return query: ", query)
-        self.database.exec_query_with_commit(query)
-        query = f"""
-          UPDATE emprunts
-          SET date_retour = CURDATE()
-          WHERE id_livres = {book_id} AND id_utilisateurs = {user_id}
-        """
-        print("return query: ", query)
         self.database.exec_query_with_commit(query)
